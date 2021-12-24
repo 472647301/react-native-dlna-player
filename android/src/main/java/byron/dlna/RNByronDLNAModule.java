@@ -7,6 +7,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
@@ -15,6 +17,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -93,6 +96,25 @@ public class RNByronDLNAModule extends ReactContextBaseJavaModule {
     public void closeService() {
         Intent intent = new Intent(reactContext, AndroidUpnpServiceImpl.class);
         reactContext.stopService(intent);
+    }
+
+    @ReactMethod
+    public void isInstalledApp(String packagename, Promise promise) {
+        PackageInfo packageInfo;
+        try {
+            packageInfo = reactContext.getPackageManager().getPackageInfo(packagename, 0);
+        }catch (PackageManager.NameNotFoundException e) {
+            packageInfo = null;
+            e.printStackTrace();
+        }
+        promise.resolve(packageInfo ==null);
+    }
+
+    @ReactMethod
+    public void startApp(String packageName) {
+        PackageManager packageManager = reactContext.getPackageManager();
+        Intent intent = packageManager.getLaunchIntentForPackage(packageName);
+        reactContext.startActivity(intent);
     }
 
     @SuppressWarnings("UnusedDeclaration")

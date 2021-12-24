@@ -8,20 +8,22 @@
  * https://github.com/facebook/react-native
  */
 
-import React, { Component } from 'react';
-import { DeviceEventEmitter, StyleSheet, Text, View } from 'react-native';
-import RNByronDLNA from 'react-native-dlna-player';
+import React, {Component} from 'react';
+import {DeviceEventEmitter, StyleSheet, Text, View} from 'react-native';
+import {startService, ByronPlayer} from '@byron-react-native/dlna-player';
 
 export default class App extends Component {
   state = {
     status: 'starting',
-    message: '--'
+    message: '--',
+    uri: '',
   };
   componentDidMount() {
-    RNByronDLNA.startService('Testing')
+    startService('Testing');
     DeviceEventEmitter.addListener('dlna-player', data => {
-      console.log(' >> dlna-player:', data)
-    })
+      console.log(' >> dlna-player:', data);
+      this.setState({status: data.title, uri: data.url});
+    });
   }
   render() {
     return (
@@ -30,6 +32,12 @@ export default class App extends Component {
         <Text style={styles.instructions}>STATUS: {this.state.status}</Text>
         <Text style={styles.welcome}>☆NATIVE CALLBACK MESSAGE☆</Text>
         <Text style={styles.instructions}>{this.state.message}</Text>
+        {this.state.uri ? (
+          <ByronPlayer
+            style={{height: 240, width: '100%'}}
+            source={{uri: this.state.uri}}
+          />
+        ) : null}
       </View>
     );
   }

@@ -11,20 +11,21 @@ Pod::Spec.new do |s|
   s.description  = <<-DESC
                   react-native-dlna-player
                    DESC
-  s.homepage     = "https://github.com/github_account/react-native-dlna-player"
+  s.homepage     = "https://github.com/472647301/react-native-dlna-player"
   # brief license entry:
   s.license      = "MIT"
   # optional - use expanded license entry instead:
   # s.license    = { :type => "MIT", :file => "LICENSE" }
-  s.authors      = { "Your Name" => "yourname@email.com" }
+  s.authors      = { "Byron" => "byron.zhuwenbo@gmail.com" }
   s.platforms    = { :ios => "9.0" }
-  s.source       = { :git => "https://github.com/github_account/react-native-dlna-player.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/472647301/react-native-dlna-player.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,c,cc,cpp,m,mm,swift}"
   s.requires_arc = true
 
   s.dependency "React"
-  # ...
-  # s.dependency "..."
+  
+  s.dependency "MobileVLCKit"
+  s.vendored_frameworks = 'Neptune.framework', 'Platinum.framework'
 end
 

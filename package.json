@@ -1,5 +1,5 @@
 {
-  "name": "react-native-dlna-player",
+  "name": "@byron-react-native/dlna-player",
   "title": "React Native Dlna Player",
   "version": "1.0.0",
   "description": "TODO",
@@ -8,23 +8,26 @@
     "README.md",
     "android",
     "index.js",
+    "index.d.ts",
     "ios",
-    "react-native-dlna-player.podspec"
+    "react-native-dlna-player.podspec",
+    "Neptune.framework",
+    "Platinum.framework"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/github_account/react-native-dlna-player.git",
-    "baseUrl": "https://github.com/github_account/react-native-dlna-player"
+    "url": "git+https://github.com/472647301/react-native-dlna-player.git",
+    "baseUrl": "https://github.com/472647301/react-native-dlna-player"
   },
   "keywords": [
     "react-native"
   ],
   "author": {
-    "name": "Your Name",
-    "email": "yourname@email.com"
+    "name": "Byron",
+    "email": "byron.zhuwenbo@gmail.com"
   },
   "license": "MIT",
   "licenseFilename": "LICENSE",
