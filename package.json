@@ -12,7 +12,8 @@
     "ios",
     "react-native-dlna-player.podspec",
     "Neptune.framework",
-    "Platinum.framework"
+    "Platinum.framework",
+    "!android/**/build/*"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
