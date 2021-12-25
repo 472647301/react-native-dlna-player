@@ -48,7 +48,7 @@ declare module "@byron-react-native/dlna-player" {
 
   export function startService(serverName: string): void;
   export function closeService(): void;
-  export function isInstalledApp(): Promise<boolean>;
-  export function startApp(): void;
+  export function isInstalledApp(bid: string): Promise<boolean>;
+  export function startApp(bid: string): void;
   export const dlnaEventName = "dlna-player";
 }
