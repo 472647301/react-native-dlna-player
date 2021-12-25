@@ -162,7 +162,7 @@ RCT_EXPORT_METHOD(startApp:(NSString *)URLScheme)
     }
     PLT_MediaObject * media = *medias->GetFirstItem();
     NSString *title = [NSString stringWithUTF8String:media->m_Title];
-    [self sendEventWithName:@"DlnaMediaInfo" body:@{@"url":url,@"title":title}];
+    [self sendEventWithName:@"dlna-player" body:@{@"url":url,@"title":title}];
 }
 
 -(void) OnSetPlayMode:(PLT_ActionReference*)action
