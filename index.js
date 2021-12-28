@@ -21,7 +21,12 @@ export const closeService = () => {
 
 export const isInstalledApp = (name) => {
   if (RNByronDLNA.isInstalledApp) {
-    RNByronDLNA.isInstalledApp(name);
+    return RNByronDLNA.isInstalledApp(name).then(res => {
+      if (Platform.OS === 'android') {
+        return res
+      }
+      return !!res.installed
+    });
   }
 };
 
