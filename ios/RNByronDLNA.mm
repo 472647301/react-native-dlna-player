@@ -73,7 +73,7 @@ RCT_EXPORT_METHOD(closeService)
 #endif
 }
 
-RCT_EXPORT_METHOD(isInstalledApp:(NSString *)URLScheme resolve:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(isInstalledApp:(NSString *)URLScheme resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
     NSURL* url;
     if ([URLScheme containsString:@"://"]) {
@@ -82,9 +82,9 @@ RCT_EXPORT_METHOD(isInstalledApp:(NSString *)URLScheme resolve:(RCTPromiseResolv
         url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://",URLScheme]];
     }
     if ([[UIApplication sharedApplication] canOpenURL:url]){
-        resolve(@(1));
+        resolve(@{@"installed": @(1)});
     } else {
-        resolve(@(0));
+        resolve(@{@"installed": @(0)});
     }
 }
 
