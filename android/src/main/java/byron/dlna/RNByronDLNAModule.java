@@ -107,7 +107,7 @@ public class RNByronDLNAModule extends ReactContextBaseJavaModule {
             packageInfo = null;
             e.printStackTrace();
         }
-        promise.resolve(packageInfo ==null);
+        promise.resolve(packageInfo != null);
     }
 
     @ReactMethod
