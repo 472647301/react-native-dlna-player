@@ -82,9 +82,9 @@ RCT_EXPORT_METHOD(isInstalledApp:(NSString *)URLScheme resolve:(RCTPromiseResolv
         url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://",URLScheme]];
     }
     if ([[UIApplication sharedApplication] canOpenURL:url]){
-        resolve(@{@"installed": @(1)});
+        resolve(@(YES));
     } else {
-        resolve(@{@"installed": @(0)});
+        resolve(@(NO));
     }
 }
 

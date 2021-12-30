@@ -1,5 +1,5 @@
 declare module "@byron-react-native/dlna-player" {
-  import { ViewProps } from "react-native";
+  import { ViewProps, NativeEventEmitter } from "react-native";
 
   export interface ByronPlayerSource {
     uri: string;
@@ -51,4 +51,5 @@ declare module "@byron-react-native/dlna-player" {
   export function isInstalledApp(bid: string): Promise<boolean>;
   export function startApp(bid: string): void;
   export const dlnaEventName = "dlna-player";
+  export const ByronEmitter: NativeEventEmitter;
 }

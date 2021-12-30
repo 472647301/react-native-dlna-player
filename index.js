@@ -3,6 +3,7 @@ import React, { Component } from "react";
 import { StyleSheet, requireNativeComponent } from "react-native";
 import { ViewPropTypes, NativeModules, Platform } from "react-native";
 import resolveAssetSource from "react-native/Libraries/Image/resolveAssetSource";
+import { NativeEventEmitter } from "react-native";
 
 const IJKPlayerModule = NativeModules.RNByronVlcModule || {};
 const RNByronDLNA = NativeModules.RNByronDLNA || {};
@@ -21,12 +22,7 @@ export const closeService = () => {
 
 export const isInstalledApp = (name) => {
   if (RNByronDLNA.isInstalledApp) {
-    return RNByronDLNA.isInstalledApp(name).then(res => {
-      if (Platform.OS === 'android') {
-        return res
-      }
-      return !!res.installed
-    });
+    return RNByronDLNA.isInstalledApp(name);
   }
 };
 
@@ -37,6 +33,8 @@ export const startApp = (name) => {
 };
 
 export const dlnaEventName = "dlna-player";
+
+export const ByronEmitter = new NativeEventEmitter(RNByronDLNA);
 
 export class ByronPlayer extends Component {
   timer = null;
