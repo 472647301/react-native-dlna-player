@@ -69,7 +69,7 @@ public class AVTransportService extends AbstractAVTransportService {
             );
         }
 
-        if (currentURI.startsWith("http:")) {
+        if (currentURI.startsWith("http:") || currentURI.startsWith("https:")) {
             try {
                 HttpFetch.validate(URIUtil.toURL(uri));
             } catch (Exception ex) {
