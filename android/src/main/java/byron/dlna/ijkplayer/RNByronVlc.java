@@ -1,6 +1,6 @@
 package byron.dlna.ijkplayer;
 
-import android.graphics.Bitmap;
+import android.annotation.SuppressLint;
 import android.media.audiofx.AudioEffect;
 import android.os.Handler;
 import android.util.Log;
@@ -12,49 +12,39 @@ import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
-import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
-import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
-import tv.danmaku.ijk.media.player.IjkMediaMeta;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
-import tv.danmaku.ijk.media.player.MediaInfo;
-import tv.danmaku.ijk.media.player.misc.ITrackInfo;
 
+@SuppressLint("ViewConstructor")
 public class RNByronVlc extends FrameLayout implements LifecycleEventListener, onTimedTextAvailable, AudioEffect.OnEnableStatusChangeListener, IMediaPlayer.OnPreparedListener, IMediaPlayer.OnErrorListener, IMediaPlayer.OnCompletionListener, IMediaPlayer.OnInfoListener, IMediaPlayer.OnBufferingUpdateListener {
-
 
     public RCTEventEmitter mEventEmitter;
     public boolean mPlayInBackground = true;
-    private ThemedReactContext themedContext;
+    private final ThemedReactContext themedContext;
     private IjkVideoView mVideoView;
     private boolean mPaused = false;
     private boolean mMuted = false;
     private float mVolume = 1.0f;
-    private float mPlaybackSpeed = 1.0f;
-    private boolean mRepeat = false;
+    private final float mPlaybackSpeed = 1.0f;
+    private final boolean mRepeat = false;
     private boolean mLoaded = false;
     private boolean mStalled = false;
     private String mVideoSource;
     private String mUserAgent;
     private ReadableMap mHeaders;
 
-    private float mProgressUpdateInterval = 250;
-    private Handler mProgressUpdateHandler = new Handler();
+    private final float mProgressUpdateInterval = 1000;
+    private final Handler mProgressUpdateHandler = new Handler();
     private Runnable mProgressUpdateRunnable = null;
     private OnAudioSessionIdRecieved mAudioSessionIdListener;
 
@@ -77,7 +67,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
      * Add Progress update event
      * Attach all event listeners for the video player
      */
-
     public void initializePlayer() {
         setVideoView();
         setProgressUpdateRunnable();
@@ -87,7 +76,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
     /**
      * Release the player
      */
-
     private void releasePlayer() {
         if (mVideoView == null) return;
 
@@ -109,7 +97,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
     /**
      * Set the video view and attach it to the screen.
      */
-
     private void setVideoView() {
         if (themedContext != null) {
             mVideoView = new IjkVideoView(themedContext);
@@ -124,7 +111,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
     /**
      * Load ijkplayer native lib
      */
-
     private void loadNativeJNI() {
         IjkMediaPlayer.loadLibrariesOnce(null);
         IjkMediaPlayer.native_profileBegin("libijkplayer.so");
@@ -133,7 +119,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
     /**
      * Set event listeners for the video player
      */
-
     private void setEventListeners() {
         if (themedContext != null && mVideoView != null) {
             mEventEmitter = themedContext.getJSModule(RCTEventEmitter.class);
@@ -150,7 +135,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
     /**
      * Set the progressUpdateInterval
      */
-
     private void setProgressUpdateRunnable() {
         if (mVideoView != null)
             mProgressUpdateRunnable = new Runnable() {
@@ -160,8 +144,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
                         WritableMap event = Arguments.createMap();
                         event.putDouble(Constants.EVENT_PROP_CURRENT_TIME, mVideoView.getCurrentPosition());
                         event.putDouble(Constants.EVENT_PROP_DURATION, mVideoView.getDuration());
-                        event.putInt("tcpSpeed", (int) mVideoView.getTcpSpeed());
-                        event.putInt("fileSize", (int) mVideoView.getFileSize());
                         mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_PROGRESS.toString(), event);
 
                         mProgressUpdateHandler.postDelayed(mProgressUpdateRunnable, Math.round(mProgressUpdateInterval));
@@ -178,17 +160,9 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
      * @param readableMap Headers for the url if any
      * @param userAgent   Adds a userAgent
      */
-
-
     public void setSrc(final String uriString, @Nullable final ReadableMap readableMap, @Nullable final String userAgent) {
         if (uriString == null)
             return;
-
-        WritableMap src = Arguments.createMap();
-        src.putString(RNByronVlcManager.PROP_SRC_URI, uriString);
-        WritableMap event = Arguments.createMap();
-        event.putMap(RNByronVlcManager.PROP_SRC, src);
-        mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_LOAD_START.toString(), event);
 
         mLoaded = false;
         mStalled = false;
@@ -198,6 +172,8 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
 
         if (mVideoView.isPlaying()) {
             releasePlayer();
+            WritableMap event = Arguments.createMap();
+            mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_SWITCH.toString(), event);
         }
         if (mVideoView == null) {
             initializePlayer();
@@ -213,20 +189,20 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
             while (iterator.hasNextKey()) {
                 String key = iterator.nextKey();
                 ReadableType type = readableMap.getType(key);
-                switch (type) {
-                    case String:
-                        headers
-                                .append(key)
-                                .append(": ")
-                                .append(readableMap.getString(key))
-                                .append("\r\n");
-                        break;
+                if (type == ReadableType.String) {
+                    headers
+                            .append(key)
+                            .append(": ")
+                            .append(readableMap.getString(key))
+                            .append("\r\n");
                 }
             }
             headerMap.put("Headers", headers.toString());
             mVideoView.setVideoPath(uriString, headerMap);
-        } else
+        } else {
+            assert mVideoView != null;
             mVideoView.setVideoPath(uriString);
+        }
     }
 
     /**
@@ -234,22 +210,14 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
      *
      * @param paused pause video if true
      */
-
-
     public void setPausedModifier(final boolean paused) {
         mPaused = paused;
         if (mVideoView == null) return;
         if (mPaused) {
             mVideoView.pause();
-            WritableMap event = Arguments.createMap();
-            event.putBoolean("paused", true);
-            mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_PAUSE.toString(), event);
         } else {
             mVideoView.start();
             mProgressUpdateHandler.post(mProgressUpdateRunnable);
-            WritableMap event = Arguments.createMap();
-            event.putBoolean("paused", false);
-            mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_PAUSE.toString(), event);
         }
     }
 
@@ -259,28 +227,9 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
      * @param seekTime       seek time in ms
      * @param pauseAfterSeek Should the video pause after seek has completed
      */
-
     public void setSeekModifier(final double seekTime, final boolean pauseAfterSeek) {
         if (mVideoView != null)
             mVideoView.seekTo((int) (seekTime * mVideoView.getDuration()));
-    }
-
-    /**
-     * Set the resizeMode for the video
-     * It can be one of
-     * FILL_VERTICAL
-     * FILL_HORIZONTAL
-     * CONTAIN
-     * COVER
-     * STRETCH
-     * ORIGINAL
-     *
-     * @param resizeMode type of resizeMode for the video
-     */
-
-    public void setResizeModifier(final String resizeMode) {
-        if (mVideoView != null)
-            mVideoView.setVideoAspect(resizeMode);
     }
 
     /**
@@ -288,7 +237,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
      *
      * @param muted
      */
-
     public void setMutedModifier(final boolean muted) {
         mMuted = muted;
         if (mVideoView == null) return;
@@ -304,7 +252,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
      *
      * @param volume
      */
-
     public void setVolumeModifier(final float volume) {
         mVolume = volume;
         if (mVideoView != null) {
@@ -312,130 +259,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
             mVideoView.setVolume(mVolume, mVolume);
 
         }
-    }
-
-    /**
-     * Change audio balance between left and right Channels
-     *
-     * @param left  left audio channel volume level
-     * @param right right audio channel volume level
-     */
-
-
-    public void setStereoPanModifier(final float left, final float right) {
-        if (mVideoView == null) return;
-        if (left > 1.0f || left < 0.0f || right > 1.0f || right < 0.0f) return;
-        mVideoView.setVolume(left, right);
-
-    }
-
-    /**
-     * set if the video should repeat itself after playing is ended
-     *
-     * @param repeat
-     */
-
-    public void setRepeatModifer(final boolean repeat) {
-        mRepeat = repeat;
-        if (mVideoView == null) return;
-        mVideoView.repeat(mRepeat);
-    }
-
-    /**
-     * The the speed of video playback
-     *
-     * @param rate
-     */
-
-    public void setPlaybackRateModifer(final float rate) {
-        mPlaybackSpeed = rate;
-        if (mVideoView == null) return;
-        mVideoView.setPlaybackRate(mPlaybackSpeed);
-    }
-
-    /**
-     * Set the interval after which progress should be updated.
-     *
-     * @param progressUpdateInterval
-     */
-
-    public void setProgressUpdateInterval(final int progressUpdateInterval) {
-        mProgressUpdateInterval = progressUpdateInterval;
-        mProgressUpdateRunnable = null;
-        setProgressUpdateRunnable();
-    }
-
-    /**
-     * Get the current selected track for audio, video and subtitle
-     *
-     * @param promise returns a promise with an object
-     */
-
-    public void getCurrentSelectedTracks(Promise promise) {
-        if (mVideoView == null) {
-            promise.reject("Player is not initialized");
-            return;
-        }
-        WritableMap args = new Arguments().createMap();
-        args.putInt("selectedAudioTrack", mVideoView.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_AUDIO));
-        args.putInt("selectedVideoTrack", mVideoView.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_VIDEO));
-        args.putInt("selectedTextTrack", mVideoView.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT));
-        promise.resolve(args);
-
-    }
-
-    /**
-     * Select the audio track for the given ID
-     *
-     * @param trackID
-     */
-
-    public void selectAudioTrack(int trackID) {
-        if (mVideoView == null) return;
-        mVideoView.selectTrack(trackID);
-    }
-
-    /**
-     * Select the video track for the given ID
-     *
-     * @param trackID
-     */
-
-
-    public void selectVideoTrack(int trackID) {
-        if (mVideoView == null) return;
-        mVideoView.selectTrack(trackID);
-    }
-
-    /**
-     * Deselect the track on a given ID
-     *
-     * @param trackID
-     */
-
-    public void deselectTrack(int trackID) {
-        if (mVideoView == null) return;
-        mVideoView.deSelectTrack(trackID);
-    }
-
-    /**
-     * Select text track for the given ID
-     *
-     * @param trackID
-     */
-    public void selectTextTrack(int trackID) {
-        if (mVideoView == null) return;
-        mVideoView.selectTrack(trackID);
-    }
-
-    public void setSubtitleDisplay(int textSize, String color, String position, String backgroundColor) {
-        if (mVideoView == null) return;
-        mVideoView.setSubtitleDisplay(getContext(), textSize, position, color, backgroundColor);
-    }
-
-    public void setSubtitles(final boolean subtitlesEnabled) {
-        if (mVideoView == null) return;
-        mVideoView.setSubtitles(subtitlesEnabled);
     }
 
     public void setAudio(final boolean audioEnabled) {
@@ -447,77 +270,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
     public void setVideo(final boolean videoEnabled) {
         if (mVideoView == null) return;
         mVideoView.setVideo(videoEnabled);
-
-    }
-
-    public void setAudioFocus(final boolean audioFocus) {
-        if (mVideoView == null) return;
-        if (audioFocus) {
-            mVideoView.getAudioFocus();
-        } else {
-            mVideoView.abandonAudioFocus();
-        }
-    }
-
-    public void setBackgroundPlay(final boolean playInBackground) {
-        if (mVideoView == null) return;
-        mPlayInBackground = playInBackground;
-
-
-    }
-
-    public void takeSnapshot(final String path, Promise promise) throws IOException {
-        if (mVideoView == null) {
-            promise.reject("Error", "video not loaded yet");
-        }
-
-        Bitmap bitmap = mVideoView.getBitmap();
-
-        if (bitmap == null) {
-            promise.reject("Error", "bitmap is null");
-        }
-
-        File dir = new File(path.replace("file://", ""));
-
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-
-        String fileName = "snapshots-" + UUID.randomUUID().toString() + "." + "jpeg";
-        String filePath = path + fileName;
-        File file = new File(filePath.replace("file://", ""));
-
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-            promise.resolve(filePath);
-
-        } catch (Exception e) {
-            Log.d("ERROR", e.getMessage());
-        } finally {
-
-            bitmap.recycle();
-            if (fos != null)
-                fos.close();
-        }
-    }
-
-    public void setSnapshotPath(final String snapshotPath) throws IOException {
-        if (mVideoView == null) return;
-        Bitmap bitmap = mVideoView.getBitmap();
-        if (bitmap == null)
-            return;
-        File file = new File(snapshotPath);
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-        } finally {
-            bitmap.recycle();
-            if (fos != null)
-                fos.close();
-        }
 
     }
 
@@ -556,12 +308,9 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
     @Override
     public boolean onError(IMediaPlayer iMediaPlayer, int frameworkErr, int implErr) {
         WritableMap event = Arguments.createMap();
-        WritableMap error = Arguments.createMap();
-        error.putInt(Constants.EVENT_PROP_WHAT, frameworkErr);
-        event.putMap(Constants.EVENT_PROP_ERROR, error);
+        event.putInt("code", frameworkErr);
         mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_ERROR.toString(), event);
         releasePlayer();
-
         return true;
     }
 
@@ -571,7 +320,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
         switch (message) {
             case IMediaPlayer.MEDIA_INFO_OPEN_INPUT:
             case IMediaPlayer.MEDIA_INFO_BUFFERING_START:
-
                 setMutedModifier(true);
                 postDelayed(new Runnable() {
                     @Override
@@ -580,12 +328,10 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
                         setVolumeModifier(1);
                     }
                 }, 2000);
-
                 mStalled = true;
                 break;
             case IMediaPlayer.MEDIA_INFO_BUFFERING_END:
                 setMutedModifier(false);
-
                 mStalled = false;
                 break;
             case IjkMediaPlayer.MEDIA_INFO_AUDIO_SEEK_RENDERING_START:
@@ -594,7 +340,6 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
                 handlePlayPauseOnVideo();
                 break;
         }
-
         return true;
     }
 
@@ -603,13 +348,13 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
             setMutedModifier(false);
             mVideoView.pause();
             WritableMap event = Arguments.createMap();
-            event.putString("paused", "true");
-            mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_PAUSE.toString(), event);
+            event.putBoolean("paused", true);
+            mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_PAUSED.toString(), event);
         } else {
             setMutedModifier(false);
             WritableMap event = Arguments.createMap();
-            event.putString("paused", "false");
-            mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_VIDEO_PLAYING.toString(), event);
+            event.putBoolean("paused", false);
+            mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_PAUSED.toString(), event);
         }
 
     }
@@ -621,9 +366,7 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
 
     @Override
     public void onTimedText(String subtitle) {
-        WritableMap event = Arguments.createMap();
-        event.putString("text", subtitle);
-        mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_TIMED_TEXT.toString(), event);
+
     }
 
     @Override
@@ -634,73 +377,9 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
             mAudioSessionIdListener.onAudioSessionId(iMediaPlayer);
 
         WritableMap event = Arguments.createMap();
-        WritableArray videoTracks = new Arguments().createArray();
-        WritableArray audioTracks = new Arguments().createArray();
-        WritableArray textTracks = new Arguments().createArray();
-        MediaInfo mediainfo = iMediaPlayer.getMediaInfo();
-
-        ArrayList<IjkMediaMeta.IjkStreamMeta> streams = mediainfo.mMeta.mStreams;
-
-        event.putString("format", mediainfo.mMeta.mFormat);
-        event.putString("bitrate", String.valueOf(mediainfo.mMeta.mBitrate));
-        event.putString("startTime", String.valueOf(mediainfo.mMeta.mStartUS));
-        event.putString("audioDecoder", String.valueOf(mediainfo.mAudioDecoder));
-        event.putString("audioDecoderImpl", String.valueOf(mediainfo.mAudioDecoderImpl));
-        event.putString("videoDecoder", String.valueOf(mediainfo.mVideoDecoder));
-        event.putString("videoDecoderImpl", String.valueOf(mediainfo.mVideoDecoderImpl));
-        event.putInt("audioSessionID", iMediaPlayer.getAudioSessionId());
-        event.putInt("selectedAudioTrack", mVideoView.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_AUDIO));
-        event.putInt("selectedVideoTrack", mVideoView.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_VIDEO));
-        event.putInt("selectedTextTrack", mVideoView.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT));
-        event.putString("dataSource", iMediaPlayer.getDataSource());
-        event.putBoolean("canGoForward", mVideoView.canSeekForward());
-        event.putBoolean("canGoBackward", mVideoView.canSeekBackward());
-        event.putBoolean("canPause", mVideoView.canPause());
-
-
-        for (int i = 0; i < streams.size(); i++) {
-
-            WritableMap args = new Arguments().createMap();
-            IjkMediaMeta.IjkStreamMeta streamMeta = streams.get(i);
-
-            args.putInt("track_id", streamMeta.mIndex);
-            args.putString("type", streamMeta.mType);
-            args.putString("codecShortName", streamMeta.mCodecName);
-            args.putString("codecLongName", streamMeta.mCodecLongName);
-            args.putString("codecProfile", streamMeta.mCodecProfile);
-            args.putString("language", streamMeta.mLanguage);
-            args.putInt("width", streamMeta.mWidth);
-
-            args.putInt("height", streamMeta.mHeight);
-            args.putString("bitrate", String.valueOf(streamMeta.mBitrate));
-            args.putInt("sampleRate", streamMeta.mSampleRate);
-            args.putInt("channelLayout", (int) streamMeta.mChannelLayout);
-            args.putInt("fps_den", streamMeta.mFpsDen);
-            args.putInt("fps_num", streamMeta.mFpsNum);
-            args.putInt("sar_den", streamMeta.mSarDen);
-            args.putInt("sar_num", streamMeta.mSarNum);
-            args.putInt("tbr_den", streamMeta.mTbrDen);
-            args.putInt("tbr_num", streamMeta.mTbrNum);
-
-            if (streamMeta.mType.equals("video")) {
-                videoTracks.pushMap(args);
-            } else if (streamMeta.mType.equals("audio")) {
-                audioTracks.pushMap(args);
-            } else if (streamMeta.mType.equals("timedtext")) {
-                textTracks.pushMap(args);
-            } else {
-                event.putMap("extra", args);
-            }
-
-        }
-
-        event.putArray("videoTracks", videoTracks);
-        event.putArray("audioTracks", audioTracks);
-        event.putArray("textTracks", textTracks);
-
         event.putDouble(Constants.EVENT_PROP_DURATION, mVideoView.getDuration());
         event.putDouble(Constants.EVENT_PROP_CURRENT_TIME, mVideoView.getCurrentPosition());
-        mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_LOAD.toString(), event);
+        mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_START.toString(), event);
         mLoaded = true;
         applyModifiers();
     }
@@ -710,11 +389,7 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
         if (!mStalled)
             return;
         WritableMap event = Arguments.createMap();
-        event.putDouble(Constants.EVENT_PROP_BUFFERING_PROG, percent / 100);
-        event.putInt("tcpSpeed", (int) mVideoView.getTcpSpeed());
-        event.putInt("fileSize", (int) mVideoView.getFileSize());
-        event.putString(Constants.EVENT_PROP_DATASOURCE, iMediaPlayer.getDataSource());
-        mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_STALLED.toString(), event);
+        mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_BUFFER.toString(), event);
     }
 
     @Override

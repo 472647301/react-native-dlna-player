@@ -1,11 +1,8 @@
-import PropTypes from "prop-types";
-import React, { Component } from "react";
-import { StyleSheet, requireNativeComponent } from "react-native";
-import { ViewPropTypes, NativeModules, Platform } from "react-native";
-import resolveAssetSource from "react-native/Libraries/Image/resolveAssetSource";
-import { NativeEventEmitter } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { requireNativeComponent, Dimensions } from "react-native";
+import { NativeModules, NativeEventEmitter } from "react-native";
 
-const IJKPlayerModule = NativeModules.RNByronVlcModule || {};
+const { width } = Dimensions.get("window");
 const RNByronDLNA = NativeModules.RNByronDLNA || {};
 
 export const startService = (name) => {
@@ -36,263 +33,173 @@ export const dlnaEventName = "dlna-player";
 
 export const ByronEmitter = new NativeEventEmitter(RNByronDLNA);
 
-export class ByronPlayer extends Component {
-  timer = null;
-  constructor(props) {
-    super(props);
-  }
+const RNByronVlc = requireNativeComponent("RNByronVlc");
 
-  setNativeProps(nativeProps) {
-    this._root?.setNativeProps(nativeProps);
-  }
+const RNByronPlayer = (props) => {
+  const viewRef = useRef(null);
+  const isInit = useRef(false);
+  const seek = useRef(0);
+  const muted = useRef(false);
+  const volume = useRef(1);
+  const paused = useRef(true);
+  const size = useRef({
+    width: props.style?.width || width,
+    height: props.style?.height || 240,
+  });
 
-  seek = (time, pauseAfterSeek) => {
-    if (!IJKPlayerModule.seek) {
+  useEffect(() => {
+    if (seek.current !== props.seek) {
+      seek.current = props.seek;
+    }
+    if (!isInit.current) {
       return;
     }
-    IJKPlayerModule.seek(time, pauseAfterSeek);
-  };
+    viewRef.current?.setNativeProps({
+      seek: seek.current,
+    });
+  }, [props.seek]);
 
-  setVolume = (volume) => {
-    this.setNativeProps({ volume: volume });
-  };
-  setPaused = (paused) => {
-    this.setNativeProps({ paused: paused });
-  };
-
-  setMute = (mute) => {
-    this.setNativeProps({ mute: mute });
-  };
-
-  takeSnapshot = async (path) => {
-    if (!IJKPlayerModule.takeSnapshot) {
+  useEffect(() => {
+    if (muted.current !== props.muted) {
+      muted.current = props.muted;
+    }
+    if (!isInit.current) {
       return;
     }
-    return await IJKPlayerModule.takeSnapshot(path);
-  };
+    viewRef.current?.setNativeProps({
+      muted: muted.current,
+    });
+  }, [props.muted]);
 
-  setPan = (pan) => {
-    let l = 1;
-    let r = 1;
-    if (pan < 0) {
-      l = 1;
-      r = 1 + pan;
-    } else {
-      r = 1;
-      l = 1 - pan;
+  useEffect(() => {
+    if (volume.current !== props.volume) {
+      volume.current = props.volume;
     }
-    if (!IJKPlayerModule.setPan) {
+    if (!isInit.current) {
       return;
     }
-    IJKPlayerModule.setPan(l, r);
-  };
+    viewRef.current?.setNativeProps({
+      volume: volume.current,
+    });
+  }, [props.volume]);
 
-  snapshot = (snapshotPath) => {
-    this.setNativeProps({ snapshotPath });
-  };
-
-  _assignRoot = (component) => {
-    this._root = component;
-  };
-
-  setEQPreset = (preset) => {
-    if (!IJKPlayerModule.setEQPreset) {
+  useEffect(() => {
+    if (paused.current !== props.paused) {
+      paused.current = props.paused;
+    }
+    if (!isInit.current) {
       return;
     }
-    IJKPlayerModule.setEQPreset(preset);
-  };
+    viewRef.current?.setNativeProps({
+      paused: paused.current,
+    });
+  }, [props.paused]);
 
-  _onLoadStart = (event) => {
-    if (Platform.OS === "ios") {
-      this.timer = setTimeout(() => {
-        if (this.props.onError) {
-          this.props.onError();
-        }
-        this.setNativeProps({ paused: true });
-        clearTimeout(this.timer);
-        this.timer = null;
-      }, this.props.timeout || 30000);
+  useEffect(() => {
+    const style = props.style || {};
+    if (!style.width && !style.height) {
+      return;
     }
-    if (this.props.onLoadStart) {
-      this.props.onLoadStart(event.nativeEvent);
+    if (size.current.width !== style.width) {
+      size.current.width = style.width;
+    }
+    if (size.current.height !== style.height) {
+      size.current.height = style.height;
+    }
+    viewRef.current?.setNativeProps({
+      width: size.current.width,
+      height: size.current.height,
+    });
+  }, [props.style]);
+
+  const onVideoStart = (event) => {
+    isInit.current = true;
+    viewRef.current?.setNativeProps({
+      paused: paused.current,
+    });
+    if (seek.current) {
+      viewRef.current?.setNativeProps({
+        seek: seek.current,
+      });
+    }
+    if (volume.current) {
+      viewRef.current?.setNativeProps({
+        volume: volume.current,
+      });
+    }
+    if (muted.current) {
+      viewRef.current?.setNativeProps({
+        muted: muted.current,
+      });
+    }
+    if (props.onStart) {
+      props.onStart(event.nativeEvent);
     }
   };
-
-  _onLoad = (event) => {
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
-    if (IJKPlayerModule.init) {
-      IJKPlayerModule.init();
-    }
-    if (this.props.onLoad) {
-      this.props.onLoad(event.nativeEvent);
+  const onVideoBuffer = () => {
+    if (props.onBuffer) {
+      props.onBuffer();
     }
   };
-
-  _onError = (event) => {
-    if (this.props.onError) {
-      this.props.onError(event.nativeEvent);
+  const onVideoError = () => {
+    if (props.onError) {
+      props.onError();
     }
   };
-
-  _onProgress = (event) => {
-    if (this.props.onProgress) {
-      this.props.onProgress(event.nativeEvent);
-    }
-    if (Platform.OS === "ios") {
-      const { duration, currentTime } = event.nativeEvent;
-      if (duration - currentTime < 250) {
-        this.setNativeProps({ paused: true });
-        if (this.props.onEnd) {
-          this.props.onEnd(event.nativeEvent);
-        }
+  const onVideoProgress = (event) => {
+    const info = event.nativeEvent;
+    const duration = info.duration || 0;
+    const currentTime = info.currentTime || 0;
+    if (seek.current && duration) {
+      const nowSeek = Math.ceil(duration * seek.current);
+      if (currentTime < nowSeek) {
+        return;
       }
     }
+    if (props.onProgress) {
+      props.onProgress(info);
+    }
   };
-
-  _onPause = (event) => {
-    if (this.props.onPause) {
-      this.props.onPause(event.nativeEvent);
+  const onVideoPaused = (event) => {
+    if (props.onPaused) {
+      props.onPaused(event.nativeEvent?.paused);
+    }
+  };
+  const onVideoEnd = () => {
+    if (props.onEnd) {
+      props.onEnd();
+    }
+  };
+  const onVideoSwitch = () => {
+    isInit.current = false;
+    if (props.onSwitch) {
+      props.onSwitch();
     }
   };
 
-  _onStop = (event) => {
-    if (this.props.onStop) {
-      this.props.onStop(event.nativeEvent);
-    }
-  };
+  const source = props.source || {};
+  const headers = source.headers ? source.headers : {};
+  const userAgent = source.userAgent ? source.userAgent : "";
+  const uri = source.uri || "";
+  if (!uri) return null;
 
-  _onEnd = (event) => {
-    if (this.props.onEnd) {
-      this.props.onEnd(event.nativeEvent);
-    }
-  };
-
-  _onBuffer = (event) => {
-    if (this.props.onBuffer) {
-      this.props.onBuffer(event.nativeEvent);
-    }
-  };
-
-  _onTimedText = (event) => {
-    if (this.props.onTimedText) {
-      this.props.onTimedText(event.nativeEvent);
-    }
-  };
-
-  setTextTrackIndex = (index) => {
-    this.setNativeProps({ selectedTextTrack: index });
-  };
-
-  setAudioTrackIndex = (index) => {
-    if (IJKPlayerModule.getSelectedTracks) {
-      IJKPlayerModule.getSelectedTracks();
-    }
-    this.setNativeProps({ selectedAudioTrack: index });
-  };
-
-  deselectTrack = (index) => {
-    this.setNativeProps({ deselectTrack: index });
-  };
-
-  _onPlay = () => {
-    if (this.props.onPlay) {
-      this.props.onPlay();
-    }
-  };
-
-  render() {
-    const source = resolveAssetSource(this.props.source) || {};
-    const headers = source.headers ? source.headers : {};
-    const userAgent = source.userAgent ? source.userAgent : "";
-    const options = source.options ? source.options : [];
-    options.push("--input-repeat=1000");
-    let uri = source.uri || "";
-    if (uri && uri.match(/^\//)) {
-      uri = `file://${uri}`;
-    }
-
-    const nativeProps = Object.assign({}, this.props);
-    Object.assign(nativeProps, {
-      style: [styles.base, nativeProps.style],
-      src: {
-        uri,
-        headers,
-        userAgent,
-        options,
-      },
-      onVideoLoadStart: this._onLoadStart,
-      onVideoLoad: this._onLoad,
-      onVideoError: this._onError,
-      onVideoProgress: this._onProgress,
-      onVideoPause: this._onPause,
-      onVideoStop: this._onStop,
-      onVideoEnd: this._onEnd,
-      onVideoBuffer: this._onBuffer,
-      onTimedText: this._onTimedText,
-      onPlay: this._onPlay,
-    });
-
-    return <RNByronVlc ref={this._assignRoot} {...nativeProps} />;
-  }
-}
-
-ByronPlayer.propTypes = {
-  /* Native only */
-  src: PropTypes.object,
-  seek: PropTypes.number,
-  snapshotPath: PropTypes.string,
-  onVideoLoadStart: PropTypes.func,
-  onVideoLoad: PropTypes.func,
-  onVideoBuffer: PropTypes.func,
-  onVideoError: PropTypes.func,
-  onVideoProgress: PropTypes.func,
-  onVideoPause: PropTypes.func,
-  onVideoStop: PropTypes.func,
-  onVideoEnd: PropTypes.func,
-
-  /* Wrapper component */
-  source: PropTypes.oneOfType([
-    PropTypes.shape({
-      uri: PropTypes.string,
-      headers: PropTypes.object,
-      userAgent: PropTypes.string,
-    }),
-    // Opaque type returned by require('./video.mp4')
-    PropTypes.number,
-  ]),
-  muted: PropTypes.bool,
-  volume: PropTypes.number,
-  onLoadStart: PropTypes.func,
-  onLoad: PropTypes.func,
-  onBuffer: PropTypes.func,
-  onError: PropTypes.func,
-  onProgress: PropTypes.func,
-  onPause: PropTypes.func,
-  onStop: PropTypes.func,
-  onEnd: PropTypes.func,
-
-  /* Required by react-native */
-  scaleX: PropTypes.number,
-  scaleY: PropTypes.number,
-  translateX: PropTypes.number,
-  translateY: PropTypes.number,
-  rotation: PropTypes.number,
-  ...ViewPropTypes,
+  return (
+    <RNByronVlc
+      ref={viewRef}
+      src={{ uri, headers, userAgent }}
+      width={size.current.width}
+      height={size.current.height}
+      onVideoStart={onVideoStart}
+      onVideoBuffer={onVideoBuffer}
+      onVideoError={onVideoError}
+      onVideoProgress={onVideoProgress}
+      onVideoPaused={onVideoPaused}
+      onVideoEnd={onVideoEnd}
+      onVideoSwitch={onVideoSwitch}
+    />
+  );
 };
 
-const RNByronVlc = requireNativeComponent("RNByronVlc", ByronPlayer, {
-  nativeOnly: {
-    src: true,
-    seek: true,
-    snapshotPath: true,
-  },
-});
-
-const styles = StyleSheet.create({
-  base: {
-    overflow: "hidden",
-  },
+export const ByronPlayer = React.memo((props) => {
+  return React.createElement(RNByronPlayer, props);
 });

@@ -22,10 +22,11 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.TextureView;
@@ -100,8 +101,6 @@ public class TextureRenderView extends TextureView implements IRenderView {
     public void setVideoSize(int videoWidth, int videoHeight) {
         if (videoWidth > 0 && videoHeight > 0) {
             mMeasureHelper.setVideoSize(videoWidth, videoHeight);
-            Log.e(TAG, "requestLayout setVideoSize");
-
         }
     }
 
@@ -122,7 +121,6 @@ public class TextureRenderView extends TextureView implements IRenderView {
     @Override
     public void setAspectRatio(int aspectRatio) {
         mMeasureHelper.setAspectRatio(aspectRatio);
-        Log.e(TAG, "requestLayout setAspectRatio");
         requestLayout();
 
     }
@@ -132,13 +130,8 @@ public class TextureRenderView extends TextureView implements IRenderView {
         this.widthMeasureSpec = widthMeasureSpec;
         this.heightMeasureSpec = heightMeasureSpec;
         mMeasureHelper.doMeasure(widthMeasureSpec, heightMeasureSpec);
-        Log.e(TAG, "setMeasuredDimension: " + mMeasureHelper.getMeasuredWidth() + " " + mMeasureHelper.getMeasuredHeight());
         setMeasuredDimension(mMeasureHelper.getMeasuredWidth(), mMeasureHelper.getMeasuredHeight());
     }
-
-    //--------------------
-    // TextureViewHolder
-    //--------------------
 
     public IRenderView.ISurfaceHolder getSurfaceHolder() {
         return new InternalSurfaceHolder(this, mSurfaceCallback.mSurfaceTexture, mSurfaceCallback);
@@ -205,10 +198,6 @@ public class TextureRenderView extends TextureView implements IRenderView {
             return new Surface(mSurfaceTexture);
         }
     }
-
-    //-------------------------
-    // SurfaceHolder.Callback
-    //-------------------------
 
     @Override
     public void addRenderCallback(IRenderCallback callback) {
@@ -305,7 +294,6 @@ public class TextureRenderView extends TextureView implements IRenderView {
                 renderCallback.onSurfaceDestroyed(surfaceHolder);
             }
 
-            Log.d(TAG, "onSurfaceTextureDestroyed: destroy: " + mOwnSurfaceTexture);
             return mOwnSurfaceTexture;
         }
 
@@ -320,54 +308,37 @@ public class TextureRenderView extends TextureView implements IRenderView {
         @Override
         public void releaseSurfaceTexture(SurfaceTexture surfaceTexture) {
             if (surfaceTexture == null) {
-                Log.d(TAG, "releaseSurfaceTexture: null");
-            } else if (mDidDetachFromWindow) {
+                return;
+            }
+            if (mDidDetachFromWindow) {
                 if (surfaceTexture != mSurfaceTexture) {
-                    Log.d(TAG, "releaseSurfaceTexture: didDetachFromWindow(): release different SurfaceTexture");
                     surfaceTexture.release();
                 } else if (!mOwnSurfaceTexture) {
-                    Log.d(TAG, "releaseSurfaceTexture: didDetachFromWindow(): release detached SurfaceTexture");
                     surfaceTexture.release();
-                } else {
-                    Log.d(TAG, "releaseSurfaceTexture: didDetachFromWindow(): already released by TextureView");
                 }
             } else if (mWillDetachFromWindow) {
                 if (surfaceTexture != mSurfaceTexture) {
-                    Log.d(TAG, "releaseSurfaceTexture: willDetachFromWindow(): release different SurfaceTexture");
                     surfaceTexture.release();
                 } else if (!mOwnSurfaceTexture) {
-                    Log.d(TAG, "releaseSurfaceTexture: willDetachFromWindow(): re-attach SurfaceTexture to TextureView");
                     setOwnSurfaceTexture(true);
-                } else {
-                    Log.d(TAG, "releaseSurfaceTexture: willDetachFromWindow(): will released by TextureView");
                 }
             } else {
                 if (surfaceTexture != mSurfaceTexture) {
-                    Log.d(TAG, "releaseSurfaceTexture: alive: release different SurfaceTexture");
                     surfaceTexture.release();
                 } else if (!mOwnSurfaceTexture) {
-                    Log.d(TAG, "releaseSurfaceTexture: alive: re-attach SurfaceTexture to TextureView");
                     setOwnSurfaceTexture(true);
-                } else {
-                    Log.d(TAG, "releaseSurfaceTexture: alive: will released by TextureView");
                 }
             }
         }
 
         public void willDetachFromWindow() {
-            Log.d(TAG, "willDetachFromWindow()");
             mWillDetachFromWindow = true;
         }
 
         public void didDetachFromWindow() {
-            Log.d(TAG, "didDetachFromWindow()");
             mDidDetachFromWindow = true;
         }
     }
-
-    //--------------------
-    // Accessibility
-    //--------------------
 
     @Override
     public void onInitializeAccessibilityEvent(AccessibilityEvent event) {
@@ -385,12 +356,7 @@ public class TextureRenderView extends TextureView implements IRenderView {
         @Override
         public void run() {
             if (widthMeasureSpec != 0 && heightMeasureSpec != 0) {
-                Log.d(TAG, "post measureAndLayout");
                 measure(widthMeasureSpec, heightMeasureSpec);
-                Log.e(TAG, String.format("getLeft(), getTop(), getRight(), getBottom() %d %d %d %d", getLeft(), getTop(), getRight(), getBottom()));
-                Log.e(TAG, String.format("getLeft(), getTop(), getRight(), getBottom() %d %d %d %d", getMeasuredHeight(), getMeasuredWidth(), View.MeasureSpec.getSize(getMeasuredHeight()), View.MeasureSpec.getSize(getMeasuredWidth())));
-                // layout(getLeft(), getTop(), getRight()/2, getBottom()/2);
-
             }
         }
     };
@@ -398,19 +364,12 @@ public class TextureRenderView extends TextureView implements IRenderView {
 
     @Override
     public void requestLayout() {
-        Log.d(TAG, "Overrided requestLayout called");
         super.requestLayout();
 
         UiThreadUtil.runOnUiThread(new Runnable() {
             public void run() {
                 if (widthMeasureSpec != 0 && heightMeasureSpec != 0) {
-                    // TODO fix this
-                    Log.d(TAG, "UI MEASURING AGAIN _________////////_______????? measureAndLayout");
                     measure(widthMeasureSpec, heightMeasureSpec);
-                    Log.e(TAG, String.format("getLeft(), getTop(), getRight(), getBottom() %d %d %d %d", getLeft(), getTop(), getRight(), getBottom()));
-                    Log.e(TAG, String.format("getLeft(), getTop(), getRight(), getBottom() %d %d %d %d", getMeasuredHeight(), getMeasuredWidth(), View.MeasureSpec.getSize(getMeasuredHeight()), View.MeasureSpec.getSize(getMeasuredWidth())));
-
-
 
                     int left = getLeft();
                     int top = getTop();
@@ -420,27 +379,23 @@ public class TextureRenderView extends TextureView implements IRenderView {
                     int height = View.MeasureSpec.getSize(getMeasuredHeight());
                     int width = View.MeasureSpec.getSize(getMeasuredWidth());
 
-                    int h1 = bottom-top;
+                    int h1 = bottom - top;
 
                     // Total Width
                     int vw = left + right;
 
                     // Calculate position of 4 sides of view
-                    int leftPos = (vw-width)/2;
+                    int leftPos = (vw - width) / 2;
                     int rightPos = leftPos + width;
-                    int topPos = top + (h1 - height)/2;
-                    int bottomPos = top + (h1 - height)/2 + height;
+                    int topPos = top + (h1 - height) / 2;
+                    int bottomPos = top + (h1 - height) / 2 + height;
 
-                    layout(leftPos,topPos,rightPos,bottomPos);
+                    layout(leftPos, topPos, rightPos, bottomPos);
 
-                    Log.i("MEASURE",String.valueOf(getWidth()));
-                    Log.i("MEASURE",String.valueOf(getHeight()));
                 }
 
             }
         });
 
-
-        // post(measureAndLayout);
     }
 }

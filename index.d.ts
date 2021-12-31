@@ -1,14 +1,10 @@
 declare module "@byron-react-native/dlna-player" {
-  import { ViewProps, NativeEventEmitter } from "react-native";
+  import { ViewProps, NativeMethods, NativeEventEmitter } from "react-native";
 
   export interface ByronPlayerSource {
     uri: string;
     headers: { [key: string]: string };
     userAgent: string;
-    /**
-     * VLCMedia options
-     */
-    options: Array<string>;
   }
 
   export interface ByronPlayerEvent {
@@ -24,26 +20,28 @@ declare module "@byron-react-native/dlna-player" {
   export interface ByronPlayerProps extends ViewProps {
     src: ByronPlayerSource;
     seek: number;
-    snapshotPath: string;
-    timeout: number;
     source: Partial<ByronPlayerSource> | number;
     muted: boolean;
     volume: number;
     paused: boolean;
-    onLoad: (event: ByronPlayerEvent) => void;
+    onStart: (event: ByronPlayerEvent) => void;
     onBuffer: () => void;
+    onLoading: () => void;
     onError: () => void;
     onProgress: (event: ByronPlayerEvent) => void;
     onEnd: () => void;
-    onPause: (event: { paused: boolean }) => void;
-    scaleX: number;
-    scaleY: number;
-    translateX: number;
-    translateY: number;
-    rotation: number;
+    onSwitch: () => void;
+    onPaused: (paused: boolean) => void;
   }
-  export class ByronPlayer extends React.Component<Partial<ByronPlayerProps>> {
-    setNativeProps: ({}: { [key: string]: boolean | number | string }) => void;
+  type Constructor<T> = new (...args: any[]) => T;
+  class ViewComponent extends React.Component<ByronPlayerProps> {}
+  const ViewBase: Constructor<NativeMethods> & typeof ViewComponent;
+  export class ByronPlayer extends ViewBase {
+    /**
+     * Is 3D Touch / Force Touch available (i.e. will touch events include `force`)
+     * @platform ios
+     */
+    static forceTouchAvailable: boolean;
   }
 
   export function startService(serverName: string): void;

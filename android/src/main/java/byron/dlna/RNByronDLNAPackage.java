@@ -2,7 +2,9 @@
 
 package byron.dlna;
 
-import java.util.Arrays;
+import androidx.annotation.NonNull;
+
+import java.util.Collections;
 import java.util.List;
 
 import com.facebook.react.ReactPackage;
@@ -11,29 +13,22 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
 
 import byron.dlna.ijkplayer.RNByronVlcManager;
-import byron.dlna.ijkplayer.RNByronVlcModule;
 
 public class RNByronDLNAPackage implements ReactPackage {
-    private RNByronVlcManager playerManager;
 
+    @NonNull
     @Override
-    public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-        if (playerManager == null) {
-            playerManager = new RNByronVlcManager(reactContext);
-        }
-        return Arrays.<NativeModule>asList(
-                new RNByronDLNAModule(reactContext),
-                new RNByronVlcModule(reactContext, playerManager)
+    public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
+        return Collections.<NativeModule>singletonList(
+                new RNByronDLNAModule(reactContext)
         );
     }
 
+    @NonNull
     @Override
-    public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-        if (playerManager == null) {
-            playerManager = new RNByronVlcManager(reactContext);
-        }
-        return Arrays.<ViewManager>asList(
-                playerManager
+    public List<ViewManager> createViewManagers(@NonNull ReactApplicationContext reactContext) {
+        return Collections.<ViewManager>singletonList(
+                new RNByronVlcManager()
         );
     }
 }

@@ -22,10 +22,13 @@ Pod::Spec.new do |s|
 
   s.source_files = "ios/**/*.{h,c,cc,cpp,m,mm,swift}"
   s.requires_arc = true
+  s.static_framework = true
 
   s.dependency "React"
   
-  s.dependency "MobileVLCKit"
-  s.vendored_frameworks = 'Neptune.framework', 'Platinum.framework'
+  s.vendored_frameworks = 'Neptune.framework', 'Platinum.framework', 'IJKMediaFrameworkWithSSL.framework'
+
+  s.frameworks  = "AudioToolbox", "AVFoundation", "CoreGraphics", "CoreMedia", "CoreVideo", "MobileCoreServices", "OpenGLES", "QuartzCore", "VideoToolbox", "Foundation", "UIKit", "MediaPlayer"
+  s.libraries   = "bz2", "z", "stdc++"
 end
 

@@ -103,9 +103,9 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     /**
      * Equalizer Props
      */
-
-
-    /** Subtitle rendering widget overlaid on top of the video. */
+    /**
+     * Subtitle rendering widget overlaid on top of the video.
+     */
     //private RenderingWidget mSubtitleWidget;
     private boolean mBackgroundPlayEnabled = false;
     private TextureRenderView renderView = new TextureRenderView(getContext());
@@ -239,7 +239,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     return true;
                 }
             };
-    private IMediaPlayer.OnErrorListener mErrorListener =
+    private final IMediaPlayer.OnErrorListener mErrorListener =
             new IMediaPlayer.OnErrorListener() {
                 public boolean onError(IMediaPlayer mp, int framework_err, int impl_err) {
                     Log.d(TAG, "Error: " + framework_err + "," + impl_err);
@@ -255,7 +255,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     return true;
                 }
             };
-    private IMediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
+    private final IMediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
             new IMediaPlayer.OnBufferingUpdateListener() {
                 public void onBufferingUpdate(IMediaPlayer mp, int percent) {
                     if (mOnBufferingUpdateListener != null)
@@ -264,7 +264,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     Log.i("SPEED_BUFFER", String.valueOf(mMediaPlayer.getTcpSpeed() / 1000));
                 }
             };
-    private IMediaPlayer.OnSeekCompleteListener mSeekCompleteListener = new IMediaPlayer.OnSeekCompleteListener() {
+    private final IMediaPlayer.OnSeekCompleteListener mSeekCompleteListener = new IMediaPlayer.OnSeekCompleteListener() {
 
         @Override
         public void onSeekComplete(IMediaPlayer mp) {
@@ -277,7 +277,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     private ThemedReactContext reactContext;
     private int id;
     private onTimedTextAvailable mOnTimedTextAvailable;
-    private IMediaPlayer.OnTimedTextListener mOnTimedTextListener = new IMediaPlayer.OnTimedTextListener() {
+    private final IMediaPlayer.OnTimedTextListener mOnTimedTextListener = new IMediaPlayer.OnTimedTextListener() {
 
 
         @Override

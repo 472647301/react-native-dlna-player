@@ -1,18 +1,16 @@
 #import <React/RCTView.h>
-#import <MobileVLCKit/MobileVLCKit.h>
 
 @class RCTEventDispatcher;
 
-@interface RNByronVlc : UIView <VLCMediaPlayerDelegate>
+@interface RNByronVlc : UIView
 
-@property (nonatomic, copy) RCTBubblingEventBlock onVideoLoadStart;
-@property (nonatomic, copy) RCTBubblingEventBlock onVideoLoad;
+@property (nonatomic, copy) RCTBubblingEventBlock onVideoStart;
 @property (nonatomic, copy) RCTBubblingEventBlock onVideoBuffer;
 @property (nonatomic, copy) RCTBubblingEventBlock onVideoError;
 @property (nonatomic, copy) RCTBubblingEventBlock onVideoProgress;
-@property (nonatomic, copy) RCTBubblingEventBlock onVideoPause;
-@property (nonatomic, copy) RCTBubblingEventBlock onVideoStop;
+@property (nonatomic, copy) RCTBubblingEventBlock onVideoPaused;
 @property (nonatomic, copy) RCTBubblingEventBlock onVideoEnd;
+@property (nonatomic, copy) RCTBubblingEventBlock onVideoSwitch;
 
 - (instancetype)initWithEventDispatcher:(RCTEventDispatcher *)eventDispatcher NS_DESIGNATED_INITIALIZER;
 

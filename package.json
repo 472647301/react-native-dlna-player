@@ -1,7 +1,7 @@
 {
   "name": "@byron-react-native/dlna-player",
   "title": "React Native Dlna Player",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "TODO",
   "main": "index.js",
   "files": [
@@ -13,6 +13,7 @@
     "react-native-dlna-player.podspec",
     "Neptune.framework",
     "Platinum.framework",
+    "IJKMediaFrameworkWithSSL.framework",
     "!android/**/build/*"
   ],
   "scripts": {

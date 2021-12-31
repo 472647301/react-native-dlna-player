@@ -9,21 +9,26 @@
  */
 
 import React, {Component} from 'react';
-import {DeviceEventEmitter, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import {startService, ByronPlayer} from '@byron-react-native/dlna-player';
+import {ByronEmitter, dlnaEventName} from '@byron-react-native/dlna-player';
 
 export default class App extends Component {
   state = {
     status: 'starting',
     message: '--',
-    uri: '',
+    uri: 'http://59.36.228.210/upgcxcode/52/86/387908652/387908652-1-64.flv?e=ig8euxZM2rNcNbRBhzdVhwdlhWUzhwdVhoNvNC8BqJIzNbfqXBvEuENvNC8aNEVEtEvE9IMvXBvE2ENvNCImNEVEIj0Y2J_aug859r1qXg8gNEVE5XREto8z5JZC2X2gkX5L5F1eTX1jkXlsTXHeux_f2o859IMvNC8xNbLEkF6MuwLStj8fqJ0EkX1ftx7Sqr_aio8_&ua=tvproj&uipk=5&nbs=1&deadline=1640947044&gen=playurlv2&os=bcache&oi=1902699108&trid=0000adf94f7df6064b81bc2bb538ee5b20dcT&upsig=b7b172305197ff3eecfb8733d231d82c&uparams=e,ua,uipk,nbs,deadline,gen,os,oi,trid&cdnid=60917&mid=0&bvc=vod&nettype=0&bw=154030&orderid=0,1&logo=80000000&_nva_ext_=',
+    height: 240,
   };
   componentDidMount() {
-    startService('Testing');
-    DeviceEventEmitter.addListener('dlna-player', data => {
-      console.log(' >> dlna-player:', data);
-      this.setState({status: data.title, uri: data.url});
-    });
+    // startService('Testing');
+    // ByronEmitter.addListener(dlnaEventName, data => {
+    //   console.log(' >> dlna-player:', data);
+    //   this.setState({status: data.title, uri: data.url});
+    // });
+    setTimeout(() => {
+      this.setState({height: 210});
+    }, 10000);
   }
   render() {
     return (
@@ -34,8 +39,15 @@ export default class App extends Component {
         <Text style={styles.instructions}>{this.state.message}</Text>
         {this.state.uri ? (
           <ByronPlayer
-            style={{height: 240, width: '100%'}}
+            style={{height: this.state.height, width: 375}}
             source={{uri: this.state.uri}}
+            onStart={event => console.log(' >> onStart:', event)}
+            onError={() => console.log(' >> onError')}
+            onBuffer={() => console.log(' >> onBuffer')}
+            onPaused={paused => console.log(' >> onPause:', paused)}
+            onProgress={event => console.log(' >> onProgress:', event)}
+            onEnd={() => console.log(' >> onEnd')}
+            onSwitch={() => console.log(' >> onSwitch')}
           />
         ) : null}
       </View>
