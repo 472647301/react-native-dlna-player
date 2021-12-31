@@ -8,52 +8,113 @@
  * https://github.com/facebook/react-native
  */
 
-import React, {Component} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import React, {useRef, useState, useEffect} from 'react';
+import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import {startService, ByronPlayer} from '@byron-react-native/dlna-player';
 import {ByronEmitter, dlnaEventName} from '@byron-react-native/dlna-player';
+import Slider from '@react-native-community/slider';
 
-export default class App extends Component {
-  state = {
-    status: 'starting',
-    message: '--',
-    uri: 'http://59.36.228.210/upgcxcode/52/86/387908652/387908652-1-64.flv?e=ig8euxZM2rNcNbRBhzdVhwdlhWUzhwdVhoNvNC8BqJIzNbfqXBvEuENvNC8aNEVEtEvE9IMvXBvE2ENvNCImNEVEIj0Y2J_aug859r1qXg8gNEVE5XREto8z5JZC2X2gkX5L5F1eTX1jkXlsTXHeux_f2o859IMvNC8xNbLEkF6MuwLStj8fqJ0EkX1ftx7Sqr_aio8_&ua=tvproj&uipk=5&nbs=1&deadline=1640947044&gen=playurlv2&os=bcache&oi=1902699108&trid=0000adf94f7df6064b81bc2bb538ee5b20dcT&upsig=b7b172305197ff3eecfb8733d231d82c&uparams=e,ua,uipk,nbs,deadline,gen,os,oi,trid&cdnid=60917&mid=0&bvc=vod&nettype=0&bw=154030&orderid=0,1&logo=80000000&_nva_ext_=',
-    height: 240,
+const url = 'http://vfx.mtime.cn/Video/2019/02/04/mp4/190204084208765161.mp4';
+
+const App = () => {
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [seek, setSeek] = useState(0);
+  const viewRef = useRef(null);
+
+  const onStart = event => {
+    console.log(' >> onStart:', event);
+    setDuration(event.duration);
   };
-  componentDidMount() {
-    // startService('Testing');
-    // ByronEmitter.addListener(dlnaEventName, data => {
-    //   console.log(' >> dlna-player:', data);
-    //   this.setState({status: data.title, uri: data.url});
-    // });
-    setTimeout(() => {
-      this.setState({height: 210});
-    }, 10000);
-  }
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>☆RNByronDLNA example☆</Text>
-        <Text style={styles.instructions}>STATUS: {this.state.status}</Text>
-        <Text style={styles.welcome}>☆NATIVE CALLBACK MESSAGE☆</Text>
-        <Text style={styles.instructions}>{this.state.message}</Text>
-        {this.state.uri ? (
-          <ByronPlayer
-            style={{height: this.state.height, width: 375}}
-            source={{uri: this.state.uri}}
-            onStart={event => console.log(' >> onStart:', event)}
-            onError={() => console.log(' >> onError')}
-            onBuffer={() => console.log(' >> onBuffer')}
-            onPaused={paused => console.log(' >> onPause:', paused)}
-            onProgress={event => console.log(' >> onProgress:', event)}
-            onEnd={() => console.log(' >> onEnd')}
-            onSwitch={() => console.log(' >> onSwitch')}
-          />
-        ) : null}
+  const onError = () => {
+    console.log(' >> onError');
+  };
+  const onBuffer = () => {
+    console.log(' >> onBuffer');
+  };
+  const onPaused = bool => {
+    console.log(' >> onPaused:', bool);
+  };
+  const onProgress = event => {
+    console.log(' >> onProgress:', event);
+    if (seek) setSeek(0);
+    setCurrentTime(event.currentTime);
+  };
+  const onEnd = () => {
+    console.log(' >> onEnd');
+  };
+  const onSwitch = () => {
+    console.log(' >> onSwitch');
+  };
+  const onSlidingComplete = val => {
+    setSeek(val);
+    viewRef.current?.setNativeProps({
+      seek: val,
+    });
+  };
+  const nowTime = currentTime ? getDurationTime(currentTime / 1000) : '--';
+  const totalTime = duration ? getDurationTime(duration / 1000) : '--';
+  return (
+    <View style={styles.container}>
+      <Text style={styles.welcome}>☆RNByronDLNA example☆</Text>
+      <ByronPlayer
+        source={{uri: url}}
+        onStart={onStart}
+        onError={onError}
+        onBuffer={onBuffer}
+        onPaused={onPaused}
+        onProgress={onProgress}
+        onEnd={onEnd}
+        onSwitch={onSwitch}
+        style={{height: 240, marginVertical: 10}}
+        paused={paused}
+        ref={viewRef}
+      />
+      <View style={styles.time}>
+        <Text>
+          {totalTime.h
+            ? `${totalTime.h}:${totalTime.m}:${totalTime.s}`
+            : `${totalTime.m}:${totalTime.s}`}
+        </Text>
+        <Text style={{color: 'red', marginHorizontal: 10}}>/</Text>
+        <Text style={{color: 'blue', width: 100}}>
+          {nowTime.h
+            ? `${nowTime.h}:${nowTime.m}:${nowTime.s}`
+            : `${nowTime.m}:${nowTime.s}`}
+        </Text>
       </View>
-    );
-  }
+      <TouchableOpacity
+        onPress={() => setPaused(!paused)}
+        style={[styles.btn, {backgroundColor: paused ? 'red' : 'blue'}]}>
+        <Text style={{color: '#fff'}}>{paused ? '已暂停' : '播放中'}</Text>
+      </TouchableOpacity>
+      {duration ? (
+        <Slider
+          minimumValue={1 / duration}
+          maximumValue={1}
+          value={seek ? seek : currentTime ? currentTime / duration : seek}
+          minimumTrackTintColor={'blue'}
+          maximumTrackTintColor="grey"
+          onSlidingComplete={onSlidingComplete}
+          onValueChange={setSeek}
+          thumbTintColor={'red'}
+          style={styles.silder}
+        />
+      ) : null}
+    </View>
+  );
+};
+
+function getDurationTime(time) {
+  const h = Math.floor(time / 3600);
+  const m = Math.floor((time / 60) % 60);
+  const s = Math.floor(time % 60);
+
+  return {h, m: m < 10 ? '0' + m : m, s: s < 10 ? '0' + s : s};
 }
+
+export default App;
 
 const styles = StyleSheet.create({
   container: {
@@ -67,9 +128,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     margin: 10,
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
+  time: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  silder: {
+    width: 200,
+    height: 30,
+    marginVertical: 10,
+  },
+  btn: {
+    width: 120,
+    height: 36,
+    borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
   },
 });

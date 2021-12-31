@@ -1,5 +1,5 @@
 declare module "@byron-react-native/dlna-player" {
-  import { ViewProps, NativeMethods, NativeEventEmitter } from "react-native";
+  import { ViewProps, NativeEventEmitter } from "react-native";
 
   export interface ByronPlayerSource {
     uri: string;
@@ -33,15 +33,8 @@ declare module "@byron-react-native/dlna-player" {
     onSwitch: () => void;
     onPaused: (paused: boolean) => void;
   }
-  type Constructor<T> = new (...args: any[]) => T;
-  class ViewComponent extends React.Component<ByronPlayerProps> {}
-  const ViewBase: Constructor<NativeMethods> & typeof ViewComponent;
-  export class ByronPlayer extends ViewBase {
-    /**
-     * Is 3D Touch / Force Touch available (i.e. will touch events include `force`)
-     * @platform ios
-     */
-    static forceTouchAvailable: boolean;
+  export class ByronPlayer extends React.Component<ByronPlayerProps> {
+    setNativeProps(nativeProps: any): void;
   }
 
   export function startService(serverName: string): void;

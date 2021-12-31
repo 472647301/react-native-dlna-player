@@ -201,7 +201,6 @@
     switch (_player.playbackState) {
         case IJKMPMoviePlaybackStateStopped: {
             NSLog(@"IJKMPMoviePlayBackStateDidChange %d: stopped", (int)_player.playbackState);
-            self.onVideoPaused(@{@"paused": @(YES)});
             break;
         }
         case IJKMPMoviePlaybackStatePlaying: {

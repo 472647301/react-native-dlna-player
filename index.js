@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { requireNativeComponent, Dimensions } from "react-native";
-import { NativeModules, NativeEventEmitter } from "react-native";
+import { NativeModules, NativeEventEmitter, StyleSheet } from "react-native";
 
 const { width } = Dimensions.get("window");
 const RNByronDLNA = NativeModules.RNByronDLNA || {};
@@ -35,7 +35,7 @@ export const ByronEmitter = new NativeEventEmitter(RNByronDLNA);
 
 const RNByronVlc = requireNativeComponent("RNByronVlc");
 
-const RNByronPlayer = (props) => {
+const RNByronPlayer = React.forwardRef((props, ref) => {
   const viewRef = useRef(null);
   const isInit = useRef(false);
   const seek = useRef(0);
@@ -46,6 +46,12 @@ const RNByronPlayer = (props) => {
     width: props.style?.width || width,
     height: props.style?.height || 240,
   });
+
+  React.useImperativeHandle(ref, () => ({
+    setNativeProps: (nativeProps) => {
+      viewRef.current?.setNativeProps(nativeProps);
+    },
+  }));
 
   useEffect(() => {
     if (seek.current !== props.seek) {
@@ -100,10 +106,10 @@ const RNByronPlayer = (props) => {
     if (!style.width && !style.height) {
       return;
     }
-    if (size.current.width !== style.width) {
+    if (style.width && size.current.width !== style.width) {
       size.current.width = style.width;
     }
-    if (size.current.height !== style.height) {
+    if (style.height && size.current.height !== style.height) {
       size.current.height = style.height;
     }
     viewRef.current?.setNativeProps({
@@ -187,6 +193,7 @@ const RNByronPlayer = (props) => {
     <RNByronVlc
       ref={viewRef}
       src={{ uri, headers, userAgent }}
+      style={[styles.video, props.style]}
       width={size.current.width}
       height={size.current.height}
       onVideoStart={onVideoStart}
@@ -198,8 +205,14 @@ const RNByronPlayer = (props) => {
       onVideoSwitch={onVideoSwitch}
     />
   );
-};
+});
 
-export const ByronPlayer = React.memo((props) => {
-  return React.createElement(RNByronPlayer, props);
+export const ByronPlayer = React.memo(RNByronPlayer);
+
+const styles = StyleSheet.create({
+  video: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#000",
+  },
 });
