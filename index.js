@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from "react";
-import { requireNativeComponent, Dimensions } from "react-native";
+import React, { useRef, useEffect, useState } from "react";
+import { requireNativeComponent, View } from "react-native";
 import { NativeModules, NativeEventEmitter, StyleSheet } from "react-native";
 
 const RNByronDLNA = NativeModules.RNByronDLNA || {};
@@ -41,7 +41,8 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
   const muted = useRef(false);
   const volume = useRef(1);
   const paused = useRef(true);
-  const size = useRef(initSize(props.style));
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
 
   React.useImperativeHandle(ref, () => ({
     setNativeProps: (nativeProps) => {
@@ -96,35 +97,6 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
       paused: paused.current,
     });
   }, [props.paused]);
-
-  useEffect(() => {
-    size.current = initSize(props.style);
-    viewRef.current?.setNativeProps({
-      width: size.current.width,
-      height: size.current.height,
-    });
-  }, [props.style]);
-
-  const initSize = (style = {}) => {
-    const res = {};
-    const { width, height } = Dimensions.get("window");
-    if (!style.width && !style.height) {
-      return res;
-    }
-    if (typeof style.width === "number") {
-      res.width = style.width;
-    } else if (typeof styles.width === "string") {
-      const rate = styles.width.replace("%", "");
-      res.width = (Number(rate) / 100) * width;
-    }
-    if (typeof styles.height === "number") {
-      res.height = style.height;
-    } else if (typeof styles.height === "string") {
-      const rate = styles.height.replace("%", "");
-      res.height = (Number(rate) / 100) * height;
-    }
-    return res;
-  };
 
   const onVideoStart = (event) => {
     isInit.current = true;
@@ -195,6 +167,16 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
     }
   };
 
+  const onLayout = (e) => {
+    const layout = e.nativeEvent.layout;
+    if (layout.width !== width) {
+      setWidth(layout.width);
+    }
+    if (layout.height !== height) {
+      setHeight(layout.height);
+    }
+  };
+
   const source = props.source || {};
   const headers = source.headers ? source.headers : {};
   const userAgent = source.userAgent ? source.userAgent : "";
@@ -202,18 +184,24 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
   if (!uri) return null;
 
   return (
-    <RNByronVlc
-      ref={viewRef}
-      src={{ uri, headers, userAgent }}
-      style={[styles.video, props.style]}
-      onVideoStart={onVideoStart}
-      onVideoBuffer={onVideoBuffer}
-      onVideoError={onVideoError}
-      onVideoProgress={onVideoProgress}
-      onVideoPaused={onVideoPaused}
-      onVideoEnd={onVideoEnd}
-      onVideoSwitch={onVideoSwitch}
-    />
+    <View style={props.style} onLayout={onLayout}>
+      {width && height ? (
+        <RNByronVlc
+          ref={viewRef}
+          width={width}
+          height={height}
+          src={{ uri, headers, userAgent }}
+          style={[styles.video, { width, height }]}
+          onVideoStart={onVideoStart}
+          onVideoBuffer={onVideoBuffer}
+          onVideoError={onVideoError}
+          onVideoProgress={onVideoProgress}
+          onVideoPaused={onVideoPaused}
+          onVideoEnd={onVideoEnd}
+          onVideoSwitch={onVideoSwitch}
+        />
+      ) : null}
+    </View>
   );
 });
 
