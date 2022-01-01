@@ -1026,7 +1026,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "user_agent", mUserAgent);
 
         ijkMediaPlayer.setCacheShare(IjkMediaPlayer.FFP_PROP_INT64_SHARE_CACHE_DATA);
-        // ijkMediaPlayer.setLogEnabled(true);
+        ijkMediaPlayer.setLogEnabled(true);
 
         return ijkMediaPlayer;
     }

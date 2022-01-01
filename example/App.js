@@ -14,14 +14,26 @@ import {startService, ByronPlayer} from '@byron-react-native/dlna-player';
 import {ByronEmitter, dlnaEventName} from '@byron-react-native/dlna-player';
 import Slider from '@react-native-community/slider';
 
-const url = 'http://vfx.mtime.cn/Video/2019/02/04/mp4/190204084208765161.mp4';
+const url =
+  'https://a13.fp.ps.netease.com/file/61c88e88ddf9cd217c702731Jmxprdis03?.mp4';
 
 const App = () => {
+  const [uri, setUri] = useState(url);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isSliding, setIsSliding] = useState(false);
   const [paused, setPaused] = useState(false);
   const [seek, setSeek] = useState(0);
   const viewRef = useRef(null);
+
+  useEffect(() => {
+    startService('@byron-react-native/dlna-player');
+    ByronEmitter.addListener(dlnaEventName, info => {
+      if (info.url) {
+        setUri(info.url);
+      }
+    });
+  }, []);
 
   const onStart = event => {
     console.log(' >> onStart:', event);
@@ -35,10 +47,14 @@ const App = () => {
   };
   const onPaused = bool => {
     console.log(' >> onPaused:', bool);
+    setPaused(bool);
   };
   const onProgress = event => {
     console.log(' >> onProgress:', event);
-    if (seek) setSeek(0);
+    if (isSliding) {
+      setSeek(0);
+      setIsSliding(false);
+    }
     setCurrentTime(event.currentTime);
   };
   const onEnd = () => {
@@ -55,11 +71,12 @@ const App = () => {
   };
   const nowTime = currentTime ? getDurationTime(currentTime / 1000) : '--';
   const totalTime = duration ? getDurationTime(duration / 1000) : '--';
+  const position = duration && currentTime ? currentTime / duration : 0;
   return (
     <View style={styles.container}>
       <Text style={styles.welcome}>☆RNByronDLNA example☆</Text>
       <ByronPlayer
-        source={{uri: url}}
+        source={{uri}}
         onStart={onStart}
         onError={onError}
         onBuffer={onBuffer}
@@ -72,17 +89,9 @@ const App = () => {
         ref={viewRef}
       />
       <View style={styles.time}>
-        <Text>
-          {totalTime.h
-            ? `${totalTime.h}:${totalTime.m}:${totalTime.s}`
-            : `${totalTime.m}:${totalTime.s}`}
-        </Text>
+        <Text>{totalTime}</Text>
         <Text style={{color: 'red', marginHorizontal: 10}}>/</Text>
-        <Text style={{color: 'blue', width: 100}}>
-          {nowTime.h
-            ? `${nowTime.h}:${nowTime.m}:${nowTime.s}`
-            : `${nowTime.m}:${nowTime.s}`}
-        </Text>
+        <Text style={{color: 'blue', width: 100}}>{nowTime}</Text>
       </View>
       <TouchableOpacity
         onPress={() => setPaused(!paused)}
@@ -93,11 +102,11 @@ const App = () => {
         <Slider
           minimumValue={1 / duration}
           maximumValue={1}
-          value={seek ? seek : currentTime ? currentTime / duration : seek}
+          value={isSliding ? seek : position}
           minimumTrackTintColor={'blue'}
           maximumTrackTintColor="grey"
           onSlidingComplete={onSlidingComplete}
-          onValueChange={setSeek}
+          onSlidingStart={() => setIsSliding(true)}
           thumbTintColor={'red'}
           style={styles.silder}
         />
@@ -110,8 +119,10 @@ function getDurationTime(time) {
   const h = Math.floor(time / 3600);
   const m = Math.floor((time / 60) % 60);
   const s = Math.floor(time % 60);
-
-  return {h, m: m < 10 ? '0' + m : m, s: s < 10 ? '0' + s : s};
+  const hh = h ? h + ':' : '';
+  const mm = m < 10 ? '0' + m : m;
+  const ss = s < 10 ? '0' + s : s;
+  return `${hh}${mm}:${ss}`;
 }
 
 export default App;

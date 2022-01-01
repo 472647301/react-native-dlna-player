@@ -302,7 +302,10 @@ public class RNByronVlc extends FrameLayout implements LifecycleEventListener, o
     @Override
     public void onCompletion(IMediaPlayer iMediaPlayer) {
         WritableMap event = Arguments.createMap();
-        mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_END.toString(), event);
+        event.putDouble(Constants.EVENT_PROP_CURRENT_TIME, mVideoView.getDuration());
+        event.putDouble(Constants.EVENT_PROP_DURATION, mVideoView.getDuration());
+        mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_PROGRESS.toString(), event);
+        mEventEmitter.receiveEvent(getId(), Constants.Events.EVENT_END.toString(), null);
     }
 
     @Override

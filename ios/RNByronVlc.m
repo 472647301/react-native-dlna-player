@@ -177,10 +177,20 @@
     switch (reason) {
         case IJKMPMovieFinishReasonPlaybackEnded:
             NSLog(@"playbackStateDidChange: IJKMPMovieFinishReasonPlaybackEnded: %d\n", reason);
+            int duration1      = [_player duration] * 1000;
+            self.onVideoProgress(@{
+                @"currentTime": @(duration1),
+                @"duration": @(duration1)
+            });
             self.onVideoEnd(nil);
             break;
         case IJKMPMovieFinishReasonUserExited:
             NSLog(@"playbackStateDidChange: IJKMPMovieFinishReasonUserExited: %d\n", reason);
+            int duration2      = [_player duration] * 1000;
+            self.onVideoProgress(@{
+                @"currentTime": @(duration2),
+                @"duration": @(duration2)
+            });
             self.onVideoEnd(nil);
             break;
         case IJKMPMovieFinishReasonPlaybackError:

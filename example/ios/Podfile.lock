@@ -272,7 +272,7 @@ PODS:
   - React-jsinspector (0.66.4)
   - React-logger (0.66.4):
     - glog
-  - react-native-dlna-player (1.1.0):
+  - react-native-dlna-player (1.1.1):
     - React
   - react-native-slider (4.1.12):
     - React-Core
@@ -516,7 +516,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 94ce921e1d8ce7023366873ec371f3441383b396
   React-jsinspector: d0374f7509d407d2264168b6d0fad0b54e300b85
   React-logger: 933f80c97c633ee8965d609876848148e3fef438
-  react-native-dlna-player: 8175b83a33a85b74a2eb7449abbbcefda0d24e02
+  react-native-dlna-player: 455e96f18215e4bd04231ed809bdaeeadaef0465
   react-native-slider: 6e9b86e76cce4b9e35b3403193a6432ed07e0c81
   React-perflogger: 93075d8931c32cd1fce8a98c15d2d5ccc4d891bd
   React-RCTActionSheet: 7d3041e6761b4f3044a37079ddcb156575fb6d89
