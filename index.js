@@ -42,10 +42,7 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
   const muted = useRef(false);
   const volume = useRef(1);
   const paused = useRef(true);
-  const size = useRef({
-    width: props.style?.width || width,
-    height: props.style?.height || 240,
-  });
+  const size = useRef({ width, height: 240 });
 
   React.useImperativeHandle(ref, () => ({
     setNativeProps: (nativeProps) => {
