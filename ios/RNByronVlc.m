@@ -167,6 +167,11 @@
             @"currentTime": @(currentTime),
             @"duration": @(duration)
         });
+        if(_paused) {
+            [_player pause];
+        } else {
+            [_player play];
+        }
     } else if ((loadState & IJKMPMovieLoadStateStalled) != 0) {
         self.onVideoBuffer(nil);
     } else {
