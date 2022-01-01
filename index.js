@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { requireNativeComponent, Dimensions } from "react-native";
 import { NativeModules, NativeEventEmitter, StyleSheet } from "react-native";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 const RNByronDLNA = NativeModules.RNByronDLNA || {};
 
 export const startService = (name) => {
@@ -107,10 +107,20 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
       return;
     }
     if (style.width && size.current.width !== style.width) {
-      size.current.width = style.width;
+      if (typeof style.width === "number") {
+        size.current.width = style.width;
+      } else if (typeof styles.width === "string") {
+        const rate = styles.width.replace("%", "");
+        size.current.width = (Number(rate) / 100) * width;
+      }
     }
     if (style.height && size.current.height !== style.height) {
-      size.current.height = style.height;
+      if (typeof styles.height === "number") {
+        size.current.height = style.height;
+      } else if (typeof styles.height === "string") {
+        const rate = styles.height.replace("%", "");
+        size.current.height = (Number(rate) / 100) * height;
+      }
     }
     viewRef.current?.setNativeProps({
       width: size.current.width,
