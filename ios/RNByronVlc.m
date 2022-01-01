@@ -8,6 +8,7 @@
     NSInteger _width;
     NSInteger _height;
     float _volume;
+    BOOL _paused;
 }
 
 - (instancetype)initWithEventDispatcher:(RCTEventDispatcher *)eventDispatcher {
@@ -100,6 +101,7 @@
 }
 
 - (void)setPaused:(BOOL)paused {
+    _paused = paused;
     if(_player && _player.isPreparedToPlay) {
         if (paused) {
             [_player pause];
@@ -145,13 +147,13 @@
 
 #pragma mark - Notification
 - (void)applicationWillResignActive:(NSNotification *)notification {
-    if (_player && !_player.isPlaying) {
+    if (!_paused) {
         [_player play];
     }
 }
 
 - (void)applicationWillEnterForeground:(NSNotification *)notification {
-    if (_player && !_player.isPlaying) {
+    if (!_paused) {
         [_player play];
     }
 }
@@ -240,7 +242,7 @@
 }
 
 - (void)movieSeekDidComplete:(NSNotification*)notification {
-    if(![_player isPlaying]) {
+    if(!_paused) {
         [_player play];
     }
 }
