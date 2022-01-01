@@ -33,7 +33,7 @@ declare module "@byron-react-native/dlna-player" {
     onSwitch: () => void;
     onPaused: (paused: boolean) => void;
   }
-  export class ByronPlayer extends React.Component<ByronPlayerProps> {
+  export class ByronPlayer extends React.Component<Partial<ByronPlayerProps>> {
     setNativeProps(nativeProps: any): void;
   }
 
