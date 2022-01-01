@@ -42,7 +42,7 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
   const muted = useRef(false);
   const volume = useRef(1);
   const paused = useRef(true);
-  const size = useRef({ width, height: 240 });
+  const size = useRef({});
 
   React.useImperativeHandle(ref, () => ({
     setNativeProps: (nativeProps) => {
@@ -201,8 +201,6 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
       ref={viewRef}
       src={{ uri, headers, userAgent }}
       style={[styles.video, props.style]}
-      width={size.current.width}
-      height={size.current.height}
       onVideoStart={onVideoStart}
       onVideoBuffer={onVideoBuffer}
       onVideoError={onVideoError}
