@@ -16,5 +16,5 @@ import RNByronDLNA from 'react-native-dlna-player';
 RNByronDLNA;
 ```
 
-<img src="https://github.com/472647301/react-native-dlna-player/blob/master/screenshots/ios.png?raw=true" width="360">
-<img src="https://github.com/472647301/react-native-dlna-player/master/screenshots/android.png?raw=true" width="375">
+<img src="https://github.com/472647301/react-native-dlna-player/blob/main/screenshots/ios.png?raw=true" width="360">
+<img src="https://github.com/472647301/react-native-dlna-player/blob/main/screenshots/android.png?raw=true" width="375">
