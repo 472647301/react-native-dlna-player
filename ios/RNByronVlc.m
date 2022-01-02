@@ -1,5 +1,6 @@
 #import "RNByronVlc.h"
 #import <IJKMediaFrameworkWithSSL/IJKMediaFrameworkWithSSL.h>
+#import <AVFoundation/AVFoundation.h>
 
 @implementation RNByronVlc {
     RCTEventDispatcher *_eventDispatcher;
@@ -77,6 +78,10 @@
                                                        selector: @selector(onProgressUpdate)
                                                        userInfo: nil repeats: YES];
     }
+    // https://github.com/bilibili/ijkplayer/issues/4916
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord
+    withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionMixWithOthers
+                                           error:nil];
     [_player prepareToPlay];
 }
 
