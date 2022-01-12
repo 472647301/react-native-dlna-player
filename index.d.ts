@@ -1,13 +1,7 @@
 declare module "@byron-react-native/dlna-player" {
   import { ViewProps, NativeEventEmitter } from "react-native";
 
-  export interface ByronPlayerSource {
-    uri: string;
-    headers: { [key: string]: string };
-    userAgent: string;
-  }
-
-  export interface ByronPlayerEvent {
+  export interface VlcEvent {
     /**
      * 已播时长（毫秒ms单位）
      */
@@ -16,26 +10,41 @@ declare module "@byron-react-native/dlna-player" {
      * 总时长（毫秒ms单位）
      */
     duration: number;
+    /**
+     * 进度
+     */
+    position: number;
   }
-  export interface ByronPlayerProps extends ViewProps {
-    src: ByronPlayerSource;
-    seek: number;
-    source: Partial<ByronPlayerSource> | number;
-    muted: boolean;
-    volume: number;
+  export interface VlcSource {
+    uri: string;
+    options: Array<string>;
+  }
+  export enum ScaleType {
+    SURFACE_BEST_FIT,
+    SURFACE_FIT_SCREEN,
+    SURFACE_FILL,
+    SURFACE_16_9,
+    SURFACE_4_3,
+    SURFACE_ORIGINAL,
+  }
+  export interface VlcProps extends ViewProps {
+    source: VlcSource;
+    time: number;
+    position: number;
+    rate: ScaleType;
     paused: boolean;
-    onStart: (event: ByronPlayerEvent) => void;
+    aspectRatio: string;
+    volume: number;
+    onStart: (event: VlcEvent) => void;
     onBuffer: () => void;
     onLoading: () => void;
     onError: () => void;
-    onProgress: (event: ByronPlayerEvent) => void;
+    onProgress: (event: VlcEvent) => void;
     onEnd: () => void;
     onSwitch: () => void;
     onPaused: (paused: boolean) => void;
   }
-  export class ByronPlayer extends React.Component<Partial<ByronPlayerProps>> {
-    setNativeProps(nativeProps: any): void;
-  }
+  export class ByronPlayer extends React.Component<Partial<VlcProps>> {}
 
   export function startService(serverName: string): void;
   export function closeService(): void;

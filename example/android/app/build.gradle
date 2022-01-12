@@ -129,7 +129,9 @@ android {
     ndkVersion rootProject.ext.ndkVersion
 
     compileSdkVersion rootProject.ext.compileSdkVersion
-
+    packagingOptions {
+        pickFirst 'lib/**/libc++_shared.so'
+    }
     defaultConfig {
         applicationId "com.example"
         minSdkVersion rootProject.ext.minSdkVersion

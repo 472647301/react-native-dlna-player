@@ -13,7 +13,6 @@
     "react-native-dlna-player.podspec",
     "Neptune.framework",
     "Platinum.framework",
-    "IJKMediaFrameworkWithSSL.framework",
     "!android/**/build/*"
   ],
   "scripts": {

@@ -12,8 +12,6 @@ import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
 
-import byron.dlna.ijkplayer.RNByronVlcManager;
-
 public class RNByronDLNAPackage implements ReactPackage {
 
     @NonNull

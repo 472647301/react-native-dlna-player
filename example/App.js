@@ -13,18 +13,18 @@ import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import {startService, ByronPlayer} from '@byron-react-native/dlna-player';
 import {ByronEmitter, dlnaEventName} from '@byron-react-native/dlna-player';
 import Slider from '@react-native-community/slider';
+import {Dimensions} from 'react-native';
+
+const {width} = Dimensions.get('window');
 
 const url =
-  'https://a13.fp.ps.netease.com/file/61c88e88ddf9cd217c702731Jmxprdis03?.mp4';
+  'http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8';
 
 const App = () => {
   const [uri, setUri] = useState(url);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [isSliding, setIsSliding] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [seek, setSeek] = useState(0);
-  const viewRef = useRef(null);
+  const [position, setPosition] = useState(0);
+  const ref = useRef();
 
   useEffect(() => {
     startService('@byron-react-native/dlna-player');
@@ -35,82 +35,39 @@ const App = () => {
     });
   }, []);
 
-  const onStart = event => {
-    console.log(' >> onStart:', event);
-    setDuration(event.duration);
+  const onEventVlc = event => {
+    console.log(' >> onEventVlc:', event.nativeEvent);
   };
-  const onError = () => {
-    console.log(' >> onError');
-  };
-  const onBuffer = () => {
-    console.log(' >> onBuffer');
-  };
-  const onPaused = bool => {
-    console.log(' >> onPaused:', bool);
-    setPaused(bool);
-  };
-  const onProgress = event => {
-    console.log(' >> onProgress:', event);
-    if (isSliding) {
-      setSeek(0);
-      setIsSliding(false);
-    }
-    setCurrentTime(event.currentTime);
-  };
-  const onEnd = () => {
-    console.log(' >> onEnd');
-  };
-  const onSwitch = () => {
-    console.log(' >> onSwitch');
-  };
-  const onSlidingComplete = val => {
-    setSeek(val);
-    viewRef.current?.setNativeProps({
-      seek: val,
-    });
-  };
-  const nowTime = currentTime ? getDurationTime(currentTime / 1000) : '--';
-  const totalTime = duration ? getDurationTime(duration / 1000) : '--';
-  const position = duration && currentTime ? currentTime / duration : 0;
+
   return (
     <View style={styles.container}>
       <Text style={styles.welcome}>☆RNByronDLNA example☆</Text>
       <ByronPlayer
-        source={{uri}}
-        onStart={onStart}
-        onError={onError}
-        onBuffer={onBuffer}
-        onPaused={onPaused}
-        onProgress={onProgress}
-        onEnd={onEnd}
-        onSwitch={onSwitch}
-        style={{height: 240, marginVertical: 10}}
+        source={{uri, options: ['-vvv']}}
         paused={paused}
-        ref={viewRef}
+        style={{height: 240, width, marginVertical: 10}}
+        onEventVlc={onEventVlc}
+        ref={ref}
       />
-      <View style={styles.time}>
+      {/* <View style={styles.time}>
         <Text>{totalTime}</Text>
         <Text style={{color: 'red', marginHorizontal: 10}}>/</Text>
         <Text style={{color: 'blue', width: 100}}>{nowTime}</Text>
-      </View>
+      </View> */}
       <TouchableOpacity
         onPress={() => setPaused(!paused)}
         style={[styles.btn, {backgroundColor: paused ? 'red' : 'blue'}]}>
         <Text style={{color: '#fff'}}>{paused ? '已暂停' : '播放中'}</Text>
       </TouchableOpacity>
-      {duration ? (
-        <Slider
-          minimumValue={1 / duration}
-          maximumValue={1}
-          value={isSliding ? seek : position}
-          minimumTrackTintColor={'blue'}
-          maximumTrackTintColor="grey"
-          onSlidingComplete={onSlidingComplete}
-          onSlidingStart={() => setIsSliding(true)}
-          thumbTintColor={'red'}
-          style={styles.silder}
-        />
-      ) : null}
+      <Slider
+        minimumValue={0}
+        maximumValue={1}
+        value={position}
+        minimumTrackTintColor={'blue'}
+        maximumTrackTintColor="grey"
+        thumbTintColor={'red'}
+        style={styles.silder}
+      />
     </View>
   );
 };
