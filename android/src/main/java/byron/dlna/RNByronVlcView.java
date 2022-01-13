@@ -143,6 +143,7 @@ public class RNByronVlcView extends TextureView implements LifecycleEventListene
 
     public void  setPosition(float position){
         if(mMediaPlayer != null) {
+            // 待处理 java.lang.Double cannot be cast to java.lang.String
             if(position >= 0 && position <= 1){
                 mMediaPlayer.setPosition(position);
             }

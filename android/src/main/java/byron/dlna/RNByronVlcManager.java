@@ -60,11 +60,6 @@ public class RNByronVlcManager extends SimpleViewManager<RNByronVlcView> {
         playerView.setTime(time);
     }
 
-    @ReactProp(name = "position")
-    public void setPosition(final RNByronVlcView playerView, float position) {
-        playerView.setPosition(position);
-    }
-
     @ReactProp(name = "rate")
     public void setRate(final RNByronVlcView playerView, float rate) {
         playerView.setRate(rate);

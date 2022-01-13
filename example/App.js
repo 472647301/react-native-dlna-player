@@ -10,20 +10,26 @@
 
 import React, {useRef, useState, useEffect} from 'react';
 import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
-import {startService, ByronPlayer} from '@byron-react-native/dlna-player';
+import {
+  startService,
+  ByronPlayer,
+  EventType,
+} from '@byron-react-native/dlna-player';
 import {ByronEmitter, dlnaEventName} from '@byron-react-native/dlna-player';
 import Slider from '@react-native-community/slider';
 import {Dimensions} from 'react-native';
 
 const {width} = Dimensions.get('window');
 
-const url =
-  'http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8';
+const url = 'http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8';
 
 const App = () => {
   const [uri, setUri] = useState(url);
   const [paused, setPaused] = useState(false);
   const [position, setPosition] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const isSlider = useRef(false);
   const ref = useRef();
 
   useEffect(() => {
@@ -35,25 +41,50 @@ const App = () => {
     });
   }, []);
 
-  const onEventVlc = event => {
-    console.log(' >> onEventVlc:', event.nativeEvent);
+  const onPlaying = data => {
+    if (data.duration) {
+      setDuration(data.duration);
+    }
+    setTimeout(() => {
+      ref.current?.setNativeProps({time: 300 * 1000});
+    }, 8000);
   };
+
+  const onProgress = data => {
+    if (data.currentTime) {
+      setCurrentTime(data.currentTime);
+    }
+    if (data.position && !isSlider.current) {
+      setPosition(data.position);
+    }
+  };
+
+  const onSlidingComplete = val => {
+    // ref.current?.setNativeProps({position: val});
+    setTimeout(() => {
+      isSlider.current = false;
+    }, 2000);
+  };
+
+  const nowTime = currentTime ? getDurationTime(currentTime / 1000) : '--';
+  const totalTime = duration ? getDurationTime(duration / 1000) : '--';
 
   return (
     <View style={styles.container}>
       <Text style={styles.welcome}>☆RNByronDLNA example☆</Text>
       <ByronPlayer
-        source={{uri, options: ['-vvv']}}
+        source={{uri}}
         paused={paused}
-        style={{height: 240, width, marginVertical: 10}}
-        onEventVlc={onEventVlc}
+        style={{height: 240}}
+        onProgress={onProgress}
+        onPlaying={onPlaying}
         ref={ref}
       />
-      {/* <View style={styles.time}>
+      <View style={styles.time}>
         <Text>{totalTime}</Text>
         <Text style={{color: 'red', marginHorizontal: 10}}>/</Text>
         <Text style={{color: 'blue', width: 100}}>{nowTime}</Text>
-      </View> */}
+      </View>
       <TouchableOpacity
         onPress={() => setPaused(!paused)}
         style={[styles.btn, {backgroundColor: paused ? 'red' : 'blue'}]}>
@@ -67,6 +98,8 @@ const App = () => {
         maximumTrackTintColor="grey"
         thumbTintColor={'red'}
         style={styles.silder}
+        onSlidingComplete={onSlidingComplete}
+        onSlidingStart={() => (isSlider.current = true)}
       />
     </View>
   );
