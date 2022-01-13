@@ -15,10 +15,12 @@ import {ByronEmitter, dlnaEventName} from '@byron-react-native/dlna-player';
 import Slider from '@react-native-community/slider';
 import {ActivityIndicator} from 'react-native';
 
-// const url = 'http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8';
+const url = 'http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8';
+
 // const url =
 //   'https://a13.fp.ps.netease.com/file/61c88e88ddf9cd217c702731Jmxprdis03?.mp4';
-const url = 'https://github.com/472647301/react-native-dlna-player';
+
+// const url = 'https://github.com/472647301/react-native-dlna-player';
 
 const App = () => {
   const [uri, setUri] = useState(url);
@@ -62,6 +64,7 @@ const App = () => {
   const onError = () => {
     console.log(' >> onError');
     setTitle('Video playback failed');
+    if (loading) setLoading(false);
   };
   const onEndReached = () => {
     console.log(' >> onEndReached');

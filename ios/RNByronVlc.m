@@ -8,10 +8,13 @@
     NSString * _src;
     NSDictionary * _options;
     BOOL _paused;
+    BOOL _isLoadDone;
 }
 
 - (instancetype)initWithEventDispatcher:(RCTEventDispatcher *)eventDispatcher {
     if ((self = [super init])) {
+        _paused = NO;
+        _isLoadDone = NO;
         _eventDispatcher = eventDispatcher;
         NSNotificationCenter *defaultCenter = [NSNotificationCenter defaultCenter];
         [defaultCenter addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
@@ -33,6 +36,7 @@
     if(_player) {
         [_player stop];
         _player = nil;
+        _isLoadDone = NO;
     }
 }
 
@@ -105,6 +109,7 @@
     }
 }
 
+#pragma mark - Player
 /**
  * Sent by the default notification center whenever the player's state has changed.
  * \details Discussion The value of aNotification is always an VLCMediaPlayerStateChanged notification. You can retrieve
@@ -115,6 +120,10 @@
         VLCMediaPlayerState state = _player.state;
         switch (state) {
             case VLCMediaPlayerStateStopped:        ///< Player has stopped
+                if (!_isLoadDone) {
+                    // 加载失败
+                    [self vlcNotification:266];
+                }
                 [self vlcNotification:262];
                 break;
             case VLCMediaPlayerStateOpening:
@@ -130,6 +139,9 @@
                 [self vlcNotification:266];
                 break;
             case VLCMediaPlayerStatePlaying:        ///< Stream is playing
+                if (!_isLoadDone) {
+                    _isLoadDone = YES;
+                }
                 [self vlcNotification:260];
                 break;
             case VLCMediaPlayerStatePaused:         ///< Stream is paused
