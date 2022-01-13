@@ -3,7 +3,6 @@ package byron.dlna;
 import android.annotation.SuppressLint;
 import android.graphics.SurfaceTexture;
 import android.net.Uri;
-import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 
@@ -68,31 +67,40 @@ public class RNByronVlcView extends TextureView implements LifecycleEventListene
         @Override
         public void onEvent(MediaPlayer.Event event) {
             WritableMap eventMap = Arguments.createMap();
-
-            eventMap.putInt("type", event.type);
             eventMap.putDouble("currentTime", mMediaPlayer.getTime());
             eventMap.putDouble("duration", mMediaPlayer.getLength());
             eventMap.putDouble("position", mMediaPlayer.getPosition());
-            mEventEmitter.receiveEvent(getId(), "onEventVlc", eventMap);
+            switch (event.type) {
+                case MediaPlayer.Event.Buffering:
+                case MediaPlayer.Event.EncounteredError:
+                case MediaPlayer.Event.EndReached:
+                case MediaPlayer.Event.Playing:
+                case MediaPlayer.Event.Paused:
+                case MediaPlayer.Event.PositionChanged:
+                case MediaPlayer.Event.Stopped:
+                    eventMap.putInt("type", event.type);
+                    mEventEmitter.receiveEvent(getId(), "onEventVlc", eventMap);
+                    break;
+            }
         }
     };
 
     private final IVLCVout.OnNewVideoLayoutListener onNewVideoLayoutListener = new IVLCVout.OnNewVideoLayoutListener(){
         @Override
         public void onNewVideoLayout(IVLCVout vout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
-            Log.d("Vlc onNewVideoLayout", width+""+height);
+
         }
     };
 
     IVLCVout.Callback callback = new IVLCVout.Callback() {
         @Override
         public void onSurfacesCreated(IVLCVout ivlcVout) {
-            Log.d("Vlc onSurfacesCreated", "false");
+
         }
 
         @Override
         public void onSurfacesDestroyed(IVLCVout ivlcVout) {
-            Log.d("Vlc onSurfacesCreated", "true");
+
         }
     };
 
@@ -139,15 +147,6 @@ public class RNByronVlcView extends TextureView implements LifecycleEventListene
     public void setTime(int time) {
         if(mMediaPlayer != null){
             mMediaPlayer.setTime(time);
-        }
-    }
-
-    public void  setPosition(float position){
-        if(mMediaPlayer != null) {
-            // 待处理 java.lang.Double cannot be cast to java.lang.String
-            if(position >= 0 && position <= 1){
-                mMediaPlayer.setPosition(position);
-            }
         }
     }
 
