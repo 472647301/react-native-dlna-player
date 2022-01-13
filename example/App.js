@@ -10,25 +10,24 @@
 
 import React, {useRef, useState, useEffect} from 'react';
 import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
-import {
-  startService,
-  ByronPlayer,
-  EventType,
-} from '@byron-react-native/dlna-player';
+import {startService, ByronPlayer} from '@byron-react-native/dlna-player';
 import {ByronEmitter, dlnaEventName} from '@byron-react-native/dlna-player';
 import Slider from '@react-native-community/slider';
-import {Dimensions} from 'react-native';
+import {ActivityIndicator} from 'react-native';
 
-const {width} = Dimensions.get('window');
-
-const url = 'http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8';
+// const url = 'http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8';
+// const url =
+//   'https://a13.fp.ps.netease.com/file/61c88e88ddf9cd217c702731Jmxprdis03?.mp4';
+const url = 'https://github.com/472647301/react-native-dlna-player';
 
 const App = () => {
   const [uri, setUri] = useState(url);
+  const [title, setTitle] = useState('example');
   const [paused, setPaused] = useState(false);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [loading, setLoading] = useState(true);
   const isSlider = useRef(false);
   const ref = useRef();
 
@@ -37,53 +36,95 @@ const App = () => {
     ByronEmitter.addListener(dlnaEventName, info => {
       if (info.url) {
         setUri(info.url);
+        setTitle(info.title);
+        setLoading(true);
+        setDuration(0);
+        setCurrentTime(0);
+        setPosition(0);
       }
     });
   }, []);
 
-  const onPlaying = data => {
-    if (data.duration) {
-      setDuration(data.duration);
-    }
-    setTimeout(() => {
-      ref.current?.setNativeProps({time: 300 * 1000});
-    }, 8000);
-  };
-
   const onProgress = data => {
-    if (data.currentTime) {
-      setCurrentTime(data.currentTime);
-    }
-    if (data.position && !isSlider.current) {
+    if (loading) setLoading(false);
+    if (!duration) setDuration(data.duration);
+    setCurrentTime(data.currentTime);
+    if (!isSlider.current) {
       setPosition(data.position);
     }
   };
 
-  const onSlidingComplete = val => {
-    ref.current?.setNativeProps({time: Math.ceil(val * duration)});
-    setTimeout(() => {
-      isSlider.current = false;
-    }, 2000);
+  const onBuffering = () => {
+    console.log(' >> onBuffering');
+    if (!loading) setLoading(true);
   };
 
-  const nowTime = currentTime ? getDurationTime(currentTime / 1000) : '--';
-  const totalTime = duration ? getDurationTime(duration / 1000) : '--';
+  const onError = () => {
+    console.log(' >> onError');
+    setTitle('Video playback failed');
+  };
+  const onEndReached = () => {
+    console.log(' >> onEndReached');
+  };
+  const onPlaying = () => {
+    console.log(' >> onPlaying');
+    if (paused) {
+      setPaused(false);
+    }
+  };
+  const onPaused = () => {
+    console.log(' >> onPaused');
+    if (!paused) {
+      setPaused(true);
+    }
+  };
+  const onStopped = () => {
+    console.log(' >> onStopped');
+    if (!paused) {
+      setPaused(true);
+    }
+  };
+
+  const onSlidingStart = () => {
+    isSlider.current = true;
+  };
+
+  const onSlidingComplete = val => {
+    ref.current?.setNativeProps({
+      time: Math.ceil(val * duration),
+    });
+    isSlider.current = false;
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.welcome}>☆RNByronDLNA example☆</Text>
-      <ByronPlayer
-        source={{uri}}
-        paused={paused}
-        style={{height: 240}}
-        onProgress={onProgress}
-        onPlaying={onPlaying}
-        ref={ref}
-      />
+      <Text style={styles.welcome}>☆{title}☆</Text>
+      <View style={{height: 240}}>
+        <ByronPlayer
+          source={{uri}}
+          paused={paused}
+          style={{flex: 1}}
+          onProgress={onProgress}
+          onBuffering={onBuffering}
+          onError={onError}
+          onEndReached={onEndReached}
+          onPlaying={onPlaying}
+          onPaused={onPaused}
+          onStopped={onStopped}
+          ref={ref}
+        />
+        {loading ? (
+          <View style={styles.loading}>
+            <View style={styles.loading_center}>
+              <ActivityIndicator color={'#fff'} />
+            </View>
+          </View>
+        ) : null}
+      </View>
       <View style={styles.time}>
-        <Text>{totalTime}</Text>
+        <Text>{hhmmss(duration)}</Text>
         <Text style={{color: 'red', marginHorizontal: 10}}>/</Text>
-        <Text style={{color: 'blue', width: 100}}>{nowTime}</Text>
+        <Text style={{color: 'blue', width: 100}}>{hhmmss(currentTime)}</Text>
       </View>
       <TouchableOpacity
         onPress={() => setPaused(!paused)}
@@ -99,16 +140,20 @@ const App = () => {
         thumbTintColor={'red'}
         style={styles.silder}
         onSlidingComplete={onSlidingComplete}
-        onSlidingStart={() => (isSlider.current = true)}
+        onSlidingStart={onSlidingStart}
       />
     </View>
   );
 };
 
-function getDurationTime(time) {
-  const h = Math.floor(time / 3600);
-  const m = Math.floor((time / 60) % 60);
-  const s = Math.floor(time % 60);
+function hhmmss(time) {
+  if (!time) {
+    return `00:00:00`;
+  }
+  const t = Math.floor(time / 1000);
+  const h = Math.floor(t / 3600);
+  const m = Math.floor((t / 60) % 60);
+  const s = Math.floor(t % 60);
   const hh = h ? h + ':' : '';
   const mm = m < 10 ? '0' + m : m;
   const ss = s < 10 ? '0' + s : s;
@@ -147,5 +192,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 10,
+  },
+  loading: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loading_center: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.8)',
   },
 });
