@@ -57,7 +57,6 @@ export const EventType = {
   EncounteredError: 266,
   EndReached: 265,
   Playing: 260,
-  ESAdded: 276,
   Paused: 261,
   PositionChanged: 268,
   Stopped: 262,
@@ -74,11 +73,6 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
 
   const onEventVlc = (event) => {
     const data = event.nativeEvent;
-    if (
-      ![EventType.TimeChanged, EventType.PositionChanged].includes(data.type)
-    ) {
-      console.log(" >> onEventVlc:", data);
-    }
     switch (data.type) {
       case EventType.Buffering:
         props.onBuffering && props.onBuffering();
@@ -92,9 +86,6 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
       case EventType.Playing:
         props.onPlaying && props.onPlaying(data);
         break;
-      case EventType.Opening:
-        props.onOpening && props.onOpening();
-        break;
       case EventType.Paused:
         props.onPaused && props.onPaused();
         break;
@@ -103,9 +94,6 @@ const RNByronPlayer = React.forwardRef((props, ref) => {
         break;
       case EventType.Stopped:
         props.onStopped && props.onStopped();
-        break;
-      case EventType.SeekableChanged:
-        props.onSeekable && props.onSeekable(data);
         break;
     }
   };

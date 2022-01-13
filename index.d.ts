@@ -33,19 +33,9 @@ declare module "@byron-react-native/dlna-player" {
     EncounteredError = 266,
     EndReached = 265,
     Playing = 260,
-    MediaChanged = 256,
-    ESAdded = 276,
-    ESDeleted = 277,
-    ESSelected = 278,
-    LengthChanged = 273,
-    Opening = 258,
-    PausableChanged = 270,
     Paused = 261,
     PositionChanged = 268,
     Stopped = 262,
-    RecordChanged = 286,
-    SeekableChanged = 269,
-    Vout = 274,
   }
   export interface VlcProps extends ViewProps {
     source: VlcSource;
@@ -58,7 +48,6 @@ declare module "@byron-react-native/dlna-player" {
     onError: () => void;
     onEndReached: () => void;
     onPlaying: (event: VlcEvent) => void;
-    onOpening: () => void;
     onPaused: () => void;
     onProgress: (event: VlcEvent) => void;
     onStopped: () => void;
