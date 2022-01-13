@@ -1,14 +1,12 @@
 #import "RNByronVlc.h"
-#import <IJKMediaFrameworkWithSSL/IJKMediaFrameworkWithSSL.h>
+#import <MobileVLCKit/MobileVLCKit.h>
 #import <AVFoundation/AVFoundation.h>
 
 @implementation RNByronVlc {
-    RCTEventDispatcher *_eventDispatcher;
-    IJKFFMoviePlayerController *_player;
-    id _timeObserver;
-    NSInteger _width;
-    NSInteger _height;
-    float _volume;
+    RCTEventDispatcher * _eventDispatcher;
+    VLCMediaPlayer * _player;
+    NSString * _src;
+    NSDictionary * _options;
     BOOL _paused;
 }
 
@@ -16,99 +14,76 @@
     if ((self = [super init])) {
         _eventDispatcher = eventDispatcher;
         NSNotificationCenter *defaultCenter = [NSNotificationCenter defaultCenter];
-        [defaultCenter addObserver:self
-                          selector:@selector(applicationWillResignActive:)
-                              name:UIApplicationWillResignActiveNotification
-                            object:nil];
-        [defaultCenter addObserver:self
-                          selector:@selector(applicationWillEnterForeground:)
-                              name:UIApplicationWillEnterForegroundNotification
-                            object:nil];
-        [defaultCenter addObserver:self
-                          selector:@selector(loadStateDidChange:)
-                              name:IJKMPMoviePlayerLoadStateDidChangeNotification
-                            object:_player];
-        [defaultCenter addObserver:self
-                          selector:@selector(moviePlayBackDidFinish:)
-                              name:IJKMPMoviePlayerPlaybackDidFinishNotification
-                            object:_player];
-        [defaultCenter addObserver:self
-                          selector:@selector(mediaIsPreparedToPlayDidChange:)
-                              name:IJKMPMediaPlaybackIsPreparedToPlayDidChangeNotification
-                            object:_player];
-        [defaultCenter addObserver:self
-                          selector:@selector(moviePlayBackStateDidChange:)
-                              name:IJKMPMoviePlayerPlaybackStateDidChangeNotification
-                            object:_player];
-        [defaultCenter addObserver:self
-                          selector:@selector(movieSeekDidComplete:)
-                              name:IJKMPMoviePlayerDidSeekCompleteNotification
-                            object:_player];
+        [defaultCenter addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
+        [defaultCenter addObserver:self selector:@selector(applicationWillEnterForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
     }
     return self;
 }
 
--(void)setSrc:(NSDictionary *)source {
-    if (_player) {
-        [_player shutdown];
+- (void)applicationWillResignActive:(NSNotification *)notification {
+    
+}
+
+- (void)applicationWillEnterForeground:(NSNotification *)notification {
+    
+}
+
+
+-(void)releasePlayer {
+    if(_player) {
+        [_player stop];
         _player = nil;
-        self.onVideoSwitch(nil);
-    }
-    NSString* uri = [source objectForKey:@"uri"];
-    NSDictionary* headers = [source objectForKey:@"headers"];
-    NSString* userAgent = [source objectForKey:@"userAgent"];
-    NSArray* headerKeys = [headers allKeys];
-    IJKFFOptions *options = [IJKFFOptions optionsByDefault];
-    [options setOptionIntValue:1 forKey:@"infbuf" ofCategory:kIJKFFOptionCategoryPlayer];
-    [options setOptionIntValue:0 forKey:@"packet-buffering" ofCategory:kIJKFFOptionCategoryPlayer];
-    for (NSString * key in headerKeys) {
-        [options setFormatOptionValue:headers[key] forKey:key];
-    }
-    if(userAgent) {
-        [options setFormatOptionValue:userAgent forKey:@"user-agent"];
-    }
-    _player = [[IJKFFMoviePlayerController alloc] initWithContentURLString:uri withOptions:options];
-    _player.view.frame = self.bounds;
-    _player.scalingMode = IJKMPMovieScalingModeAspectFit;
-    _player.shouldAutoplay = YES;
-    self.autoresizesSubviews = YES;
-    [self addSubview:_player.view];
-    if(!_timeObserver) {
-        _timeObserver = [NSTimer scheduledTimerWithTimeInterval: 1 target: self
-                                                       selector: @selector(onProgressUpdate)
-                                                       userInfo: nil repeats: YES];
-    }
-    // https://github.com/bilibili/ijkplayer/issues/4916
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord
-    withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionMixWithOthers
-                                           error:nil];
-    [_player prepareToPlay];
-}
-
-- (void)setWidth:(NSInteger)width {
-    _width = width;
-    if (self.frame.size.width != width) {
-        CGRect frame = self.frame;
-        frame.size.width = width;
-        self.frame = frame;
-        _player.view.frame = frame;
     }
 }
 
-- (void)setHeight:(NSInteger)height {
-    _height = height;
-    if (self.frame.size.height != height) {
-        CGRect frame = self.frame;
-        frame.size.height = height;
-        self.frame = frame;
-        _player.view.frame = frame;
+-(void)createPlayer {
+    if (_player) {
+        [self releasePlayer];
+    }
+    NSURL* uri    = [NSURL URLWithString:_src];
+    _player = [[VLCMediaPlayer alloc] init];
+    [_player setDrawable:self];
+    _player.delegate = self;
+    _player.scaleFactor = 0;
+
+    VLCMedia *media = [VLCMedia mediaWithURL:uri];
+    for (NSString* option in _options) {
+        [media addOption:[option stringByReplacingOccurrencesOfString:@"--" withString:@""]];
+    }
+    _player.media = media;
+    [[AVAudioSession sharedInstance] setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+    if (_paused) {
+        [_player pause];
+    } else {
+        [_player play];
     }
 }
 
-- (void)setPaused:(BOOL)paused {
+-(void)setSource:(NSDictionary *)source {
+    NSString* uri    = [source objectForKey:@"uri"];
+    NSDictionary* options = [source objectForKey:@"options"];
+    _src = uri;
+    _options = options;
+    [self createPlayer];
+}
+
+-(void)setTime:(int)time {
+    if (_player) {
+        VLCTime *newTime = [VLCTime timeWithNumber:@(time)];
+        [_player setTime:newTime];
+    }
+}
+
+-(void)setRate:(float)rate {
+    if (_player) {
+        [_player setRate:rate];
+    }
+}
+
+-(void)setPaused:(BOOL)paused {
     _paused = paused;
-    if(_player && _player.isPreparedToPlay) {
-        if (paused) {
+    if (_player) {
+        if (_paused) {
             [_player pause];
         } else {
             [_player play];
@@ -116,150 +91,83 @@
     }
 }
 
--(void)setSeek:(float)seek {
-    if(_player && _player.isPreparedToPlay) {
-        [_player setCurrentPlaybackTime:[_player duration] * seek];
+-(void)setAspectRatio:(NSString*)aspectRatio {
+    if (_player) {
+        char *char_content = [aspectRatio cStringUsingEncoding:NSASCIIStringEncoding];
+        [_player setVideoAspectRatio:char_content];
     }
 }
 
 -(void)setVolume:(float)volume {
-    _volume = volume;
-    if(_player && _player.isPreparedToPlay) {
-        [_player setPlaybackVolume:volume];
+    if (_player) {
+        VLCAudio *audio = _player.audio;
+        audio.volume = volume;
     }
 }
 
-- (void)setMuted:(BOOL)muted {
-    if(_player && _player.isPreparedToPlay) {
-        if (muted) {
-            [_player setPlaybackVolume:0.0];
-        } else {
-            [_player setPlaybackVolume:_volume];
+/**
+ * Sent by the default notification center whenever the player's state has changed.
+ * \details Discussion The value of aNotification is always an VLCMediaPlayerStateChanged notification. You can retrieve
+ * the VLCMediaPlayer object in question by sending object to aNotification.
+ */
+- (void)mediaPlayerStateChanged:(NSNotification *)aNotification {
+    if (_player) {
+        VLCMediaPlayerState state = _player.state;
+        switch (state) {
+            case VLCMediaPlayerStateStopped:        ///< Player has stopped
+                [self vlcNotification:262];
+                break;
+            case VLCMediaPlayerStateOpening:
+                
+                break;
+            case VLCMediaPlayerStateBuffering:      ///< Stream is buffering
+                [self vlcNotification:259];
+                break;
+            case VLCMediaPlayerStateEnded:          ///< Stream has ended
+                [self vlcNotification:265];
+                break;
+            case VLCMediaPlayerStateError:          ///< Player has generated an error
+                [self vlcNotification:266];
+                break;
+            case VLCMediaPlayerStatePlaying:        ///< Stream is playing
+                [self vlcNotification:260];
+                break;
+            case VLCMediaPlayerStatePaused:         ///< Stream is paused
+                [self vlcNotification:261];
+                break;
+            case VLCMediaPlayerStateESAdded:
+                
+                break;
         }
     }
 }
 
-- (void)onProgressUpdate {
-    if(_player && _player.isPlaying) {
-        int currentTime   = [_player currentPlaybackTime] * 1000;
-        int duration      = [_player duration] * 1000;
-        self.onVideoProgress(@{
-            @"currentTime": @(currentTime),
-            @"duration": @(duration)
+/**
+ * Sent by the default notification center whenever the player's time has changed.
+ * \details Discussion The value of aNotification is always an VLCMediaPlayerTimeChanged notification. You can retrieve
+ * the VLCMediaPlayer object in question by sending object to aNotification.
+ */
+- (void)mediaPlayerTimeChanged:(NSNotification *)aNotification {
+    [self vlcNotification:268];
+}
+
+- (void)vlcNotification:(int)type {
+    if (_player) {
+        int currentTime   = [[_player time] intValue];
+        int duration      = [_player.media.length intValue];
+        self.onEventVlc(@{
+            @"type": @(type),
+            @"duration": [NSNumber numberWithInt:duration],
+            @"currentTime": [NSNumber numberWithInt:currentTime],
+            @"position": [NSNumber numberWithFloat:_player.position]
         });
-    }
-}
-
-#pragma mark - Notification
-- (void)applicationWillResignActive:(NSNotification *)notification {
-    if (!_paused) {
-        [_player play];
-    }
-}
-
-- (void)applicationWillEnterForeground:(NSNotification *)notification {
-    if (!_paused) {
-        [_player play];
-    }
-}
-
-- (void)loadStateDidChange:(NSNotification *)notification {
-    IJKMPMovieLoadState loadState = _player.loadState;
-    if ((loadState & IJKMPMovieLoadStatePlaythroughOK) != 0) {
-        int currentTime   = [_player currentPlaybackTime] * 1000;
-        int duration      = [_player duration] * 1000;
-        self.onVideoStart(@{
-            @"currentTime": @(currentTime),
-            @"duration": @(duration)
-        });
-    } else if ((loadState & IJKMPMovieLoadStateStalled) != 0) {
-        self.onVideoBuffer(nil);
-    } else {
-        self.onVideoError(nil);
-    }
-}
-
-- (void)moviePlayBackDidFinish:(NSNotification *)notification {
-    int reason = [[[notification userInfo] valueForKey:IJKMPMoviePlayerPlaybackDidFinishReasonUserInfoKey] intValue];
-    switch (reason) {
-        case IJKMPMovieFinishReasonPlaybackEnded:
-            NSLog(@"playbackStateDidChange: IJKMPMovieFinishReasonPlaybackEnded: %d\n", reason);
-            int duration1      = [_player duration] * 1000;
-            self.onVideoProgress(@{
-                @"currentTime": @(duration1),
-                @"duration": @(duration1)
-            });
-            self.onVideoEnd(nil);
-            break;
-        case IJKMPMovieFinishReasonUserExited:
-            NSLog(@"playbackStateDidChange: IJKMPMovieFinishReasonUserExited: %d\n", reason);
-            int duration2      = [_player duration] * 1000;
-            self.onVideoProgress(@{
-                @"currentTime": @(duration2),
-                @"duration": @(duration2)
-            });
-            self.onVideoEnd(nil);
-            break;
-        case IJKMPMovieFinishReasonPlaybackError:
-            NSLog(@"playbackStateDidChange: IJKMPMovieFinishReasonPlaybackError: %d\n", reason);
-            self.onVideoError(nil);
-            break;
-        default:
-            NSLog(@"playbackPlayBackDidFinish: ???: %d\n", reason);
-            break;
-    }
-}
-
-- (void)mediaIsPreparedToPlayDidChange:(NSNotification*)notification {
-    NSLog(@"mediaIsPreparedToPlayDidChange");
-}
-
-- (void)moviePlayBackStateDidChange:(NSNotification*)notification {
-    switch (_player.playbackState) {
-        case IJKMPMoviePlaybackStateStopped: {
-            NSLog(@"IJKMPMoviePlayBackStateDidChange %d: stopped", (int)_player.playbackState);
-            break;
-        }
-        case IJKMPMoviePlaybackStatePlaying: {
-            NSLog(@"IJKMPMoviePlayBackStateDidChange %d: playing", (int)_player.playbackState);
-            self.onVideoPaused(@{@"paused": @(NO)});
-            break;
-        }
-        case IJKMPMoviePlaybackStatePaused: {
-            NSLog(@"IJKMPMoviePlayBackStateDidChange %d: paused", (int)_player.playbackState);
-            self.onVideoPaused(@{@"paused": @(YES)});
-            break;
-        }
-        case IJKMPMoviePlaybackStateInterrupted: {
-            NSLog(@"IJKMPMoviePlayBackStateDidChange %d: interrupted", (int)_player.playbackState);
-            break;
-        }
-        case IJKMPMoviePlaybackStateSeekingForward:
-        case IJKMPMoviePlaybackStateSeekingBackward: {
-            NSLog(@"IJKMPMoviePlayBackStateDidChange %d: seeking", (int)_player.playbackState);
-            break;
-        }
-        default: {
-            NSLog(@"IJKMPMoviePlayBackStateDidChange %d: unknown", (int)_player.playbackState);
-            break;
-        }
-    }
-}
-
-- (void)movieSeekDidComplete:(NSNotification*)notification {
-    if(!_paused) {
-        [_player play];
     }
 }
 
 #pragma mark - Lifecycle
 - (void) removeFromSuperview {
     if(_player) {
-        [_player shutdown];
-    }
-    if(_timeObserver) {
-        [_timeObserver invalidate];
-        _timeObserver = nil;
+        [self releasePlayer];
     }
     _eventDispatcher = nil;
     [[NSNotificationCenter defaultCenter] removeObserver:self];

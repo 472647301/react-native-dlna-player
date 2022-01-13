@@ -60,7 +60,7 @@ const App = () => {
   };
 
   const onSlidingComplete = val => {
-    // ref.current?.setNativeProps({position: val});
+    ref.current?.setNativeProps({time: Math.ceil(val * duration)});
     setTimeout(() => {
       isSlider.current = false;
     }, 2000);

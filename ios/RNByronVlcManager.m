@@ -16,20 +16,13 @@ RCT_EXPORT_MODULE();
     return dispatch_get_main_queue();
 }
 
-RCT_EXPORT_VIEW_PROPERTY(src, NSDictionary);
+RCT_EXPORT_VIEW_PROPERTY(source, NSDictionary);
+RCT_EXPORT_VIEW_PROPERTY(time, int);
+RCT_EXPORT_VIEW_PROPERTY(rate, float);
 RCT_EXPORT_VIEW_PROPERTY(paused, BOOL);
-RCT_EXPORT_VIEW_PROPERTY(muted, BOOL);
-RCT_EXPORT_VIEW_PROPERTY(seek, float);
-RCT_EXPORT_VIEW_PROPERTY(volume, int);
-RCT_EXPORT_VIEW_PROPERTY(width, NSInteger)
-RCT_EXPORT_VIEW_PROPERTY(height, NSInteger)
+RCT_EXPORT_VIEW_PROPERTY(aspectRatio, NSString);
+RCT_EXPORT_VIEW_PROPERTY(volume, float);
 
-RCT_EXPORT_VIEW_PROPERTY(onVideoStart, RCTBubblingEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onVideoBuffer, RCTBubblingEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onVideoError, RCTBubblingEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onVideoProgress, RCTBubblingEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onVideoPaused, RCTBubblingEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onVideoEnd, RCTBubblingEventBlock);
-RCT_EXPORT_VIEW_PROPERTY(onVideoSwitch, RCTBubblingEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onEventVlc, RCTBubblingEventBlock);
 
 @end

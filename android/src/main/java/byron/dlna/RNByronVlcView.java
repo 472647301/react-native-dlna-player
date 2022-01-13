@@ -68,6 +68,7 @@ public class RNByronVlcView extends TextureView implements LifecycleEventListene
         @Override
         public void onEvent(MediaPlayer.Event event) {
             WritableMap eventMap = Arguments.createMap();
+
             eventMap.putInt("type", event.type);
             eventMap.putDouble("currentTime", mMediaPlayer.getTime());
             eventMap.putDouble("duration", mMediaPlayer.getLength());
