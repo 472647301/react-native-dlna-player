@@ -36,7 +36,6 @@
     if(_player) {
         [_player stop];
         _player = nil;
-        _isLoadDone = NO;
     }
 }
 
@@ -102,7 +101,7 @@
     }
 }
 
--(void)setVolume:(float)volume {
+-(void)setVolume:(int)volume {
     if (_player) {
         VLCAudio *audio = _player.audio;
         audio.volume = volume;
@@ -160,6 +159,9 @@
  * the VLCMediaPlayer object in question by sending object to aNotification.
  */
 - (void)mediaPlayerTimeChanged:(NSNotification *)aNotification {
+    if (!_isLoadDone) {
+        _isLoadDone = YES;
+    }
     [self vlcNotification:268];
 }
 

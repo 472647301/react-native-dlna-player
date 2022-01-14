@@ -109,10 +109,7 @@ public class RNByronVlcView extends TextureView implements LifecycleEventListene
             return;
         }
         mMediaPlayer.stop();
-        final IVLCVout vout = mMediaPlayer.getVLCVout();
-        vout.removeCallback(callback);
-        vout.detachViews();
-        libvlc.release();
+        mMediaPlayer.setEventListener(null);
         libvlc = null;
     }
 
