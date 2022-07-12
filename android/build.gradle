@@ -23,22 +23,16 @@ dependencies {
     implementation files('libs/javax.annotation_1.0.jar')
     implementation files('libs/javax.servlet-3.0.0.v201103241009.jar')
     implementation files('libs/jetty-client-8.1.9.v20130131.jar')
-    implementation files('libs/jetty-continuation-8.1.9.v20130131.jar')
     implementation files('libs/jetty-http-8.1.9.v20130131.jar')
     implementation files('libs/jetty-io-8.1.9.v20130131.jar')
-    implementation files('libs/jetty-security-8.1.9.v20130131.jar')
     implementation files('libs/jetty-server-8.1.9.v20130131.jar')
     implementation files('libs/jetty-servlet-8.1.9.v20130131.jar')
     implementation files('libs/jetty-util-8.1.9.v20130131.jar')
     implementation files('libs/seamless-http-1.0-alpha2.jar')
     implementation files('libs/seamless-util-1.0-alpha2.jar')
     implementation files('libs/seamless-xml-1.0-alpha2.jar')
-    implementation files('libs/slf4j-api-1.6.1.jar')
-    implementation files('libs/slf4j-jdk14-1.6.1.jar')
-    implementation files('libs/universal-image-loader-1.8.4-with-sources.jar')
 
     implementation 'org.greenrobot:eventbus:3.1.1'
 
     implementation "androidx.annotation:annotation:1.2.0"
-    implementation 'com.parse.bolts:bolts-tasks:1.4.0'
 }

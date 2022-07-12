@@ -94,8 +94,10 @@ public class RNByronDLNAModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void closeService() {
-        Intent intent = new Intent(reactContext, AndroidUpnpServiceImpl.class);
-        reactContext.stopService(intent);
+        if (upnpService != null) {
+            Intent intent = new Intent(reactContext, AndroidUpnpServiceImpl.class);
+            reactContext.stopService(intent);
+        }
     }
 
     @ReactMethod
