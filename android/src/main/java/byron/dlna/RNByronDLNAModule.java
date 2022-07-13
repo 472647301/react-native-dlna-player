@@ -85,21 +85,17 @@ public class RNByronDLNAModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startService(String name) {
-        if (upnpService == null) {
-            fetchInetAddress();
-            friendlyName = name;
-            Intent intent = new Intent(reactContext, AndroidUpnpServiceImpl.class);
-            reactContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-            reactContext.startService(intent);
-        }
+        fetchInetAddress();
+        friendlyName = name;
+        Intent intent = new Intent(reactContext, AndroidUpnpServiceImpl.class);
+        reactContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        reactContext.startService(intent);
     }
 
     @ReactMethod
     public void closeService() {
-        if (upnpService != null) {
-            Intent intent = new Intent(reactContext, AndroidUpnpServiceImpl.class);
-            reactContext.stopService(intent);
-        }
+        Intent intent = new Intent(reactContext, AndroidUpnpServiceImpl.class);
+        reactContext.stopService(intent);
     }
 
     @ReactMethod
