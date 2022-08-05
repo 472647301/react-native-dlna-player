@@ -15,16 +15,15 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 
+import org.videolan.libvlc.IVLCVout;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
-import org.videolan.libvlc.interfaces.IVLCVout;
 
 import java.util.ArrayList;
 
 @SuppressLint("ViewConstructor")
 public class RNByronVlcView extends TextureView implements LifecycleEventListener, TextureView.SurfaceTextureListener {
-    private final ThemedReactContext mContext;
     private final RCTEventEmitter mEventEmitter;
     private String mSrc;
     private LibVLC libvlc;
@@ -36,9 +35,8 @@ public class RNByronVlcView extends TextureView implements LifecycleEventListene
 
     public RNByronVlcView(ThemedReactContext context) {
         super(context);
-        mContext = context;
-        mEventEmitter = mContext.getJSModule(RCTEventEmitter.class);
-        mContext.addLifecycleEventListener(this);
+        mEventEmitter = context.getJSModule(RCTEventEmitter.class);
+        context.addLifecycleEventListener(this);
         setSurfaceTextureListener(this);
         addOnLayoutChangeListener(onLayoutChangeListener);
     }
