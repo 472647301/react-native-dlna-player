@@ -1,7 +1,7 @@
 {
   "name": "@byron-react-native/dlna-player",
   "title": "React Native Dlna Player",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "React Native Dlna Player",
   "main": "index.js",
   "files": [
